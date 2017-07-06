@@ -12,6 +12,8 @@ import sys
 # import my own libraries
 import data_io as io
 import auxilliary_functions as aux
+sys.path.append('/home/dmilodow/DataStore_DTM/FOREST2020/PotentialBiomass/src')
+import geospatial_utility_tools as geo
 
 # Where is the data?
 datadir = '/disk/scratch/local.2/dmilodow/GFW/'
