@@ -46,7 +46,7 @@ def is_GeoTIFF_within_bbox(File,T,B,L,R):
 
     GeoTIFF_bbox = np.asarray([BB11,BB10,BB00,BB01])
 
-    x,y,inside = points_in_poly(target_bbox[:,0],target_bbox[:,1],GeoTIFF_bbox)
+    x,y,inside = aux.points_in_poly(target_bbox[:,0],target_bbox[:,1],GeoTIFF_bbox)
     if inside.sum()>0:
         test = True
     return test
