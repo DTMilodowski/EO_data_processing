@@ -8,8 +8,49 @@ import osr
 import sys
 from netCDF4 import Dataset
 
+# import my own libraries
+import auxilliary_functions as aux
+
 ###############################################################################
 # GeoTIFF functions
+#------------------------------------------------------------------------------
+# Function to read geoTIFF header and find whether it contains data within
+# region of interest
+def is_GeoTIFF_within_bbox(File,T,B,L,R):
+
+    target_bbox = np.asarray([[L,T],[R,T],[R,B],[L,B]])
+
+    driver = gdal.GetDriverByName('GTiff')
+    driver.Register()
+    try:
+        ds = gdal.Open(File)
+    except RuntimeError, e:
+        print 'unable to open ' + File
+        print e
+        sys.exit(1)
+    geoTrans = ds.GetGeoTransform()
+
+    Xdim = ds.RasterXSize + 1 # since we need to traverse final pixel
+    Ydim = ds.RasterYSize + 1 # since we need to traverse final pixel
+
+    test  = False
+    X0 = geoTrans[0]
+    dX = geoTrans[1]
+    Y0 = geoTrans[3]
+    dY = geoTrans[5]
+
+    BB11 = [X0 + Xdim*dX, Y0 + Ydim*dY]
+    BB10 = [X0 + Xdim*dX, Y0]
+    BB00 = [X0, Y0]
+    BB01 = [X0 , Y0 + Ydim*dY]
+
+    GeoTIFF_bbox = np.asarray([BB11,BB10,BB00,BB01])
+
+    x,y,inside = points_in_poly(target_bbox[:,0],target_bbox[:,1],GeoTIFF_bbox)
+    if inside.sum()>0:
+        test = True
+    return test
+
 #------------------------------------------------------------------------------
 # Function to load a GeoTIFF band plus georeferencing information.  
 # Only loads one band, which is band 1 by default
