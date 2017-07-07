@@ -86,7 +86,7 @@ def calculate_cell_area_array(lat,long,area_scalar = 1.,cell_centred=True):
 
 #------------------------------------------------------------------------------
 # Clip array to given bbox extent
-# - arguements:
+# - arguments:
 #   - input array
 #   - input geotransformation
 #   - bbox N limit
@@ -94,7 +94,8 @@ def calculate_cell_area_array(lat,long,area_scalar = 1.,cell_centred=True):
 #   - bbox W limit
 #   - bbox E limit
 # - returns:
-#   - masked array
+#   - clipped array
+#   - geotransform for new clipped array
 def clip_array_to_bbox(array,geoTrans,N,S,W,E):
     rows,cols = array.shape
     latitude = np.arange(geoTrans[3],rows*geoTrans[5]+geoTrans[3],geoTrans[5])
