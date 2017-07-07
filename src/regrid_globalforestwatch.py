@@ -49,23 +49,35 @@ regrid = np.zeros((rows_host,cols_host,n_years))
 # Read in the list of available GFW tiles
 tile_list=np.genfromtxt(datadir+'tile_list.txt',dtype='string')
 n_tiles = len(tile_list)
+
+# loop through the tiles
 for tt in range(0,n_tiles):
+
     # only analyse tile of it falls within the ROI
     if io.is_GeoTIFF_within_bbox(datadir+tile_list[tt],N,S,W,E):
         print tile_list[tt]
 
         # load forest loss year - we read this directly from the tile list
-        lossyear, geoTrans, coord_sys = io.load_GeoTIFF_band_and_georeferencing(datadir+tile_list[tt],band_number=1)
+        lossyear_i, geoTrans_i, coord_sys = io.load_GeoTIFF_band_and_georeferencing(datadir+tile_list[tt],band_number=1)
 
         # clip GFW tile to extent
-        lossyear, geoTrans = geo.mask_array_to_bbox(lossyear,geoTrans,N,S,W,E)
+        print "clipping to bbox extent"
+        lossyear, geoTrans = geo.clip_array_to_bbox(lossyear_i,geoTrans_i,N,S,W,E)
+
+        lossyear_i=None
+        geoTrans_i=None
 
         # calculate cell areas for geographic coordinate system
+        print "calculating cell areas"
         rows,cols=lossyear.shape
-        latitude = np.arange(geoTrans[3],rows*geoTrans[5]+geoTrans[3],geoTrans[5])+geoTrans[5]/2. # shifting to cell centre
-        longitude = np.arange(geoTrans[0],cols*geoTrans[1]+geoTrans[0],geoTrans[1])+geoTrans[1]/2. # shifting to cell centre
-        areas = geo.calculate_cell_area_array(latitude,longitude, area_scalar = 1./10.**6,cell_centred=True)
+        latitude = np.arange(geoTrans[3],rows*geoTrans[5]+geoTrans[3]-0.000001*geoTrans[5],geoTrans[5])+geoTrans[5]/2. # shifting to cell centre
+        longitude = np.arange(geoTrans[0],cols*geoTrans[1]+geoTrans[0]-0.000001*geoTrans[1],geoTrans[1])+geoTrans[1]/2. # shifting to cell centre
+        # note in the above I added an arbitrarily small alteration to the upper limits to account for rare propagation of float rounding errors
+ 
+        areas = np.empty((latitude.size,1))
+        areas[:,0] = geo.calculate_cell_area_column(latitude,geoTrans[1], area_scalar = 1./10.**6,cell_centred=True)
 
+        print "finding nearest neighbour"
         #assign closest point in regrid lat to orig
         closest_lat=np.zeros(rows).astype("int")
         closest_long=np.zeros(cols).astype("int")
@@ -75,16 +87,21 @@ for tt in range(0,n_tiles):
         for jj,val in enumerate(longitude):
             closest_long[jj]=np.argsort(np.abs(val-long_host))[0]
 
+        print "regridding"
         # loop through years and assign change to year - expressed as fraction of pixel deforested in regridded dataset
         for yy in range(0,n_years):
-            lossarea = areas.copy()
-            lossarea[lossyear!=(years[yy]-2000)]=0.
+            lossarea = np.zeros((rows,cols))
+            lossarea[lossyear==(years[yy]-2000)] = 1.
+            lossarea=np.multiply(lossarea,areas)
+
             for ii,lat_ii in enumerate(lat_host):
                 lat_mask = closest_lat==lat_ii
                 for jj,long_jj in enumerate(long_host):
-                    long_mask = closest_long==long_jj
+                    long_mask = closest_long==long_jj 
                     regrid[ii,jj,yy] = np.sum(lossarea[lat_mask,long_mask])
-            regrid[:,:,yy]/=areas_host
-            
-        
-array, geoTrans = io.load_GeoTIFF_band_and_georeferencing('/home/dmilodow/DataStore_DTM/FOREST2020/PotentialBiomass/data/tropics_AGBobs_total_data.tif',band_number=1)
+
+# normalise forest loss to give fraction loss
+for yy in range(0,n_years):
+    regrid[:,:,yy]/=areas_host
+
+np.savez('regridded_data',regrid)
