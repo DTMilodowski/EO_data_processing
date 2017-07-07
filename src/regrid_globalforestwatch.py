@@ -12,7 +12,6 @@ import sys
 # import my own libraries
 import data_io as io
 import auxilliary_functions as aux
-sys.path.append('/home/dmilodow/DataStore_DTM/FOREST2020/PotentialBiomass/src')
 import geospatial_utility_tools as geo
 
 # Where is the data?
@@ -57,11 +56,14 @@ for tt in range(0,n_tiles):
 
         # load forest loss year - we read this directly from the tile list
         lossyear, geoTrans, coord_sys = io.load_GeoTIFF_band_and_georeferencing(datadir+tile_list[tt],band_number=1)
-        
+
+        # clip GFW tile to extent
+        lossyear, geoTrans = geo.mask_array_to_bbox(lossyear,geoTrans,N,S,W,E)
+
         # calculate cell areas for geographic coordinate system
         rows,cols=lossyear.shape
         latitude = np.arange(geoTrans[3],rows*geoTrans[5]+geoTrans[3],geoTrans[5])+geoTrans[5]/2. # shifting to cell centre
-        longitude =  np.arange(geoTrans[0],cols*geoTrans[1]+geoTrans[0],geoTrans[1])+geoTrans[1]/2. # shifting to cell centre
+        longitude = np.arange(geoTrans[0],cols*geoTrans[1]+geoTrans[0],geoTrans[1])+geoTrans[1]/2. # shifting to cell centre
         areas = geo.calculate_cell_area_array(latitude,longitude, area_scalar = 1./10.**6,cell_centred=True)
 
         #assign closest point in regrid lat to orig
@@ -71,9 +73,7 @@ for tt in range(0,n_tiles):
         for ii,val in enumerate(latitude):
             closest_lat[ii]=np.argsort(np.abs(val-lat_host))[0]
         for jj,val in enumerate(longitude):
-            closest_lon[jj]=np.argsort(np.abs(val-lon_host))[0]
-
-        
+            closest_long[jj]=np.argsort(np.abs(val-long_host))[0]
 
         # loop through years and assign change to year - expressed as fraction of pixel deforested in regridded dataset
         for yy in range(0,n_years):
@@ -87,3 +87,4 @@ for tt in range(0,n_tiles):
             regrid[:,:,yy]/=areas_host
             
         
+array, geoTrans = io.load_GeoTIFF_band_and_georeferencing('/home/dmilodow/DataStore_DTM/FOREST2020/PotentialBiomass/data/tropics_AGBobs_total_data.tif',band_number=1)
