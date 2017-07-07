@@ -83,6 +83,23 @@ def calculate_cell_area_array(lat,long,area_scalar = 1.,cell_centred=True):
     cell_area*=area_scalar
     return cell_area
 
+# new function since cell area not a function of longitude, so only need a column
+def calculate_cell_area_column(lat,long,area_scalar = 1.,cell_centred=True):
+    dx = long[1]-long[0]
+    dy = lat[1]-lat[0]
+
+    # shift lat and long so that they refer to cell boundaries if necessary
+    if cell_centred == True:
+        long=long-dx/2.
+        lat = lat-dy/2.
+
+    q = np.abs(dx)/360.
+    a1 =  calculate_area_of_ellipsoidal_slice(lat)
+    a2 =  calculate_area_of_ellipsoidal_slice(lat+dy)
+
+    cell_area = q * (np.max([a1,a2],axis = 0) - np.min([a1,a2],axis = 0))
+    cell_area*=area_scalar
+    return cell_area
 
 #------------------------------------------------------------------------------
 # Clip array to given bbox extent
