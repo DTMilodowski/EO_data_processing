@@ -24,8 +24,8 @@ savedir = '/disk/scratch/local.2/dmilodow/GFW/regridded/'
 # What is the bounding box of ROI? In this case use Mexico
 N = 33.
 S = 14.
-E = -118.
-W = -86.
+E = -86.
+W = -118.
 
 # What is the tree cover thrshold for forest loss?
 min_treecover = 30 # %
@@ -39,23 +39,24 @@ n_years = 2016-2001
 # Create the host array
 dY = 0.175
 dX = 0.175
-rows_host = int((N-S)/dY)
-cols_host = int((W-E)/dX)
-regrid = np.zeros((rows_host,cols_host,n_years))
-lat_host = np.linspace(S,N,dY)+dY/2. # shifting to cell centre
-long_host = np.linspace(W,E,dX)+dX/2. # shifting to cell centre
+lat_host = np.arange(S,N,dY)+dY/2. # shifting to cell centre
+long_host = np.arange(W,E,dX)+dX/2. # shifting to cell centre
 areas_host = geo.calculate_cell_area_array(lat_host,long_host, area_scalar = 1./10.**6,cell_centred=True)
+
+rows_host = lat_host.size
+cols_host = long_host.size
+regrid = np.zeros((rows_host,cols_host,n_years))
 
 # Read in the list of available GFW tiles
 tile_list=np.genfromtxt(datadir+'tile_list.txt',dtype='string')
 n_tiles = len(tile_list)
-for ii in range(0,n_tiles):
+for tt in range(0,n_tiles):
     # only analyse tile of it falls within the ROI
-    if io.is_GeoTIFF_within_bbox(datadir+tile_list[ii],N,S,W,E):
-        print tile_list[ii]
+    if io.is_GeoTIFF_within_bbox(datadir+tile_list[tt],N,S,W,E):
+        print tile_list[tt]
 
         # load forest loss year - we read this directly from the tile list
-        lossyear, geoTrans, coord_sys = io.load_GeoTIFF_band_and_georeferencing(datadir+tile_list[ii],band_number=1)
+        lossyear, geoTrans, coord_sys = io.load_GeoTIFF_band_and_georeferencing(datadir+tile_list[tt],band_number=1)
         
         # calculate cell areas for geographic coordinate system
         rows,cols=lossyear.shape
@@ -67,10 +68,12 @@ for ii in range(0,n_tiles):
         closest_lat=np.zeros(rows).astype("int")
         closest_long=np.zeros(cols).astype("int")
         
-        for ii,val in enumerate(lat_host):
-            closest_lat[ii]=np.argsort(np.abs(val-regridlat))[0]
-        for jj,val in enumerate(long_host):
-            closest_lon[jj]=np.argsort(np.abs(val-regridlon))[0]
+        for ii,val in enumerate(latitude):
+            closest_lat[ii]=np.argsort(np.abs(val-lat_host))[0]
+        for jj,val in enumerate(longitude):
+            closest_lon[jj]=np.argsort(np.abs(val-lon_host))[0]
+
+        
 
         # loop through years and assign change to year - expressed as fraction of pixel deforested in regridded dataset
         for yy in range(0,n_years):
@@ -80,6 +83,7 @@ for ii in range(0,n_tiles):
                 lat_mask = closest_lat==lat_ii
                 for jj,long_jj in enumerate(long_host):
                     long_mask = closest_long==long_jj
-                    regrid[ii,jj,yy] = np.sum(lossarea[lat_mask,long_mask])/areas_host[ii,jj]
+                    regrid[ii,jj,yy] = np.sum(lossarea[lat_mask,long_mask])
+            regrid[:,:,yy]/=areas_host
             
         
