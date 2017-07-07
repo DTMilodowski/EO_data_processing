@@ -90,7 +90,6 @@ def calculate_cell_area_column(lat,dx,area_scalar = 1.,cell_centred=True):
 
     # shift lat and long so that they refer to cell boundaries if necessary
     if cell_centred == True:
-        long=long-dx/2.
         lat = lat-dy/2.
 
     q = np.abs(dx)/360.
@@ -114,6 +113,7 @@ def calculate_cell_area_column(lat,dx,area_scalar = 1.,cell_centred=True):
 #   - clipped array
 #   - geotransform for new clipped array
 def clip_array_to_bbox(array,geoTrans,N,S,W,E):
+
     rows,cols = array.shape
     latitude = np.arange(geoTrans[3],rows*geoTrans[5]+geoTrans[3],geoTrans[5])
     longitude =  np.arange(geoTrans[0],cols*geoTrans[1]+geoTrans[0],geoTrans[1])
@@ -124,14 +124,11 @@ def clip_array_to_bbox(array,geoTrans,N,S,W,E):
     long_keep = np.empty((1,longitude.size))
 
     # pad by half resolution for cases where pixels don't align perfectly with boundaries.
-    lat_keep[:,0] = np.all((latitude < N + d_lat/2., latitude >= S - d_lat/2.),axis=0)
-    long_keep[0,:] = np.all((longitude < E + d_long/2., longitude >= W - d_long/2.),axis=0)
+    lat_keep[:,0] = np.all((latitude <= N + d_lat/2., latitude >= S - d_lat/2.),axis=0)
+    long_keep[0,:] = np.all((longitude <= E + d_long/2., longitude >= W - d_long/2.),axis=0)
 
-    print 'get mask'
     test = np.dot(lat_keep,long_keep).astype(bool)
-    
-    print N, S, W,E
-    print np.max(latitude[lat_keep[:,0].astype(bool)]), np.min(latitude[lat_keep[:,0].astype(bool)]), np.min(longitude[long_keep[0,:].astype(bool)]),np.max(longitude[long_keep[0,:].astype(bool)])
+
     clip_array = array[test].reshape(lat_keep.sum(),long_keep.sum())
     
     geoTrans_u = []
@@ -139,7 +136,5 @@ def clip_array_to_bbox(array,geoTrans,N,S,W,E):
         geoTrans_u = [np.min(longitude[long_keep[0,:].astype(bool)]), geoTrans[1], geoTrans[2], np.min(latitude[lat_keep[:,0].astype(bool)]), geoTrans[4], geoTrans[5]]
     else:              # -ve y resolution indicates that raster origin specified as upper left corner
         geoTrans_u = [np.min(longitude[long_keep[0,:].astype(bool)]),  geoTrans[1], geoTrans[2], np.max(latitude[lat_keep[:,0].astype(bool)]), geoTrans[4], geoTrans[5]]
-
-    print geoTrans, geoTrans_u
     
     return clip_array, geoTrans_u
