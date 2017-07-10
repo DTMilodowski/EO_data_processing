@@ -138,3 +138,42 @@ def clip_array_to_bbox(array,geoTrans,N,S,W,E):
         geoTrans_u = [np.min(longitude[long_keep[0,:].astype(bool)]),  geoTrans[1], geoTrans[2], np.max(latitude[lat_keep[:,0].astype(bool)]), geoTrans[4], geoTrans[5]]
     
     return clip_array, geoTrans_u
+
+
+#------------------------------------------------------------------------------
+# Regrid array using nearest neighbour
+# - arguments:
+#   - target latitude (1D array)
+#   - target longitude (1D array)
+#   - initial geotransformation info
+#   - initial array
+#   - resampling method; options are 'mean' (default) and 'sum'
+# - returns:
+#   - regridded array
+def regrid_array_nearest(target_lat, target_long, geoTrans, array, method = 'mean'):
+
+    target_rows = target_lat.size
+    target_cols = target_lon.size
+    regrid = np.zeros((target_rows,target_cols))*np.nan
+    
+    init_rows,init_cols = array.shape
+    closest_lat=np.zeros(init_rows).astype("int")
+    closest_long=np.zeros(init_cols).astype("int")
+    init_lat = np.arange(geoTrans[3],rows*geoTrans[5]+geoTrans[3]-0.000001*geoTrans[5],geoTrans[5])+geoTrans[5]/2. # shifting to cell centre
+    init_long = np.arange(geoTrans[0],cols*geoTrans[1]+geoTrans[0]-0.000001*geoTrans[1],geoTrans[1])+geoTrans[1]/2. # shifting to cell centre
+
+    for ii,val in enumerate(init_lat):
+        closest_lat[ii]=np.argsort(np.abs(val-target_lat))[0]
+    for jj,val in enumerate(init_long):
+        closest_long[jj]=np.argsort(np.abs(val-target_long))[0]
+    
+    for ii in range(0,target_rows):
+        lat_mask = closest_lat==ii
+        for jj in range(0,target_cols):
+            long_mask = closest_long==jj
+            if method == 'mean':
+                regrid[ii,jj] = np.mean(array[np.ix_(lat_mask,long_mask)])
+            elif method == 'sum':
+                regrid[ii,jj] = np.sum(array[np.ix_(lat_mask,long_mask)])
+
+    return regrid
