@@ -73,6 +73,7 @@ for tt in range(0,n_tiles):
         latitude = np.arange(geoTrans[3],rows*geoTrans[5]+geoTrans[3]-0.000001*geoTrans[5],geoTrans[5])+geoTrans[5]/2. # shifting to cell centre
         longitude = np.arange(geoTrans[0],cols*geoTrans[1]+geoTrans[0]-0.000001*geoTrans[1],geoTrans[1])+geoTrans[1]/2. # shifting to cell centre
         # note in the above I added an arbitrarily small alteration to the upper limits to account for rare propagation of float rounding errors
+        # This becomes an issue with big datasets like GFW (40000 x 40000 pixels per tile)
  
         areas = np.empty((latitude.size,1))
         areas[:,0] = geo.calculate_cell_area_column(latitude,geoTrans[1], area_scalar = 1./10.**6,cell_centred=True)
