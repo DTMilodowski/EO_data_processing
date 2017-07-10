@@ -147,14 +147,17 @@ def clip_array_to_bbox(array,geoTrans,N,S,W,E):
 #   - target longitude (1D array)
 #   - initial geotransformation info
 #   - initial array
-#   - resampling method; options are 'mean' (default), 'sum' and 'nansum'.  doesn't deal with nodata for averaging currently
+#   - optional host array, for exxample if you are analysing tiled data sequentially
+#   - resampling method; only option currently is 'sum' (default)
 # - returns:
 #   - regridded array
-def regrid_array_nearest(target_lat, target_long, geoTrans, array, method = 'mean'):
+def regrid_array_nearest(target_lat, target_long, geoTrans, array, regrid = np.array([]), method = 'sum'):
 
     target_rows = target_lat.size
     target_cols = target_lon.size
-    regrid = np.zeros((target_rows,target_cols))*np.nan
+    
+    if regrid.size == 0:
+        regrid = np.zeros((target_rows,target_cols))*np.nan
     
     init_rows,init_cols = array.shape
     closest_lat=np.zeros(init_rows).astype("int")
@@ -169,15 +172,14 @@ def regrid_array_nearest(target_lat, target_long, geoTrans, array, method = 'mea
     
     for ii in range(0,target_rows):
         lat_mask = closest_lat==ii
-        for jj in range(0,target_cols):
-            long_mask = closest_long==jj
-            if method == 'mean':
-                regrid[ii,jj] = np.mean(array[np.ix_(lat_mask,long_mask)])
-            elif method == 'sum':
-                regrid[ii,jj] = np.sum(array[np.ix_(lat_mask,long_mask)])
-            elif method == 'nansum':
-                regrid[ii,jj] = np.nansum(array[np.ix_(lat_mask,long_mask)])
-            else:
-                regrid[ii,jj] = np.mean(array[np.ix_(lat_mask,long_mask)])
+        if lat_mask.sum() > 0:
+            for jj in range(0,target_cols):
+                long_mask = closest_long==jj
+                if long_mask.sum() > 0:
+                    # avoid overwriting existing data from other tiles
+                    if np.isnan(regrid[ii,jj]):
+                        regrid[ii,jj] = np.sum(array[np.ix_(lat_mask,long_mask)])
+                    else:
+                        regrid[ii,jj] += np.sum(array[np.ix_(lat_mask,long_mask)])
 
     return regrid
