@@ -79,8 +79,8 @@ for tt in range(0,n_tiles):
 
         print "finding nearest neighbour"
         #assign closest point in regrid lat to orig
-        closest_lat=np.zeros(rows).astype("int")
-        closest_long=np.zeros(cols).astype("int")
+        closest_lat=np.zeros(rows)#.astype("int")
+        closest_long=np.zeros(cols)#.astype("int")
         
         for ii,val in enumerate(latitude):
             closest_lat[ii]=np.argsort(np.abs(val-lat_host))[0]
@@ -97,11 +97,11 @@ for tt in range(0,n_tiles):
             for ii,lat_ii in enumerate(lat_host):
                 lat_mask = closest_lat==lat_ii
                 for jj,long_jj in enumerate(long_host):
-                    long_mask = closest_long==long_jj 
-                    regrid[ii,jj,yy] = np.sum(lossarea[lat_mask,long_mask])
+                    long_mask = closest_long==long_jj
+                    regrid[ii,jj,yy] = np.sum(lossarea[np.ix_(lat_mask,long_mask)])
 
 # normalise forest loss to give fraction loss
 for yy in range(0,n_years):
     regrid[:,:,yy]/=areas_host
 
-np.savez('regridded_data',regrid)
+np.savez('regridded_data',regrid,regrid='GFW')
