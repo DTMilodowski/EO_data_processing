@@ -79,8 +79,8 @@ for tt in range(0,n_tiles):
 
         print "finding nearest neighbour"
         #assign closest point in regrid lat to orig
-        closest_lat=np.zeros(rows)#.astype("int")
-        closest_long=np.zeros(cols)#.astype("int")
+        closest_lat=np.zeros(rows).astype("int")
+        closest_long=np.zeros(cols).astype("int")
         
         for ii,val in enumerate(latitude):
             closest_lat[ii]=np.argsort(np.abs(val-lat_host))[0]
