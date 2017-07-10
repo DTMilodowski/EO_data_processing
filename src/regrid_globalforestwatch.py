@@ -52,7 +52,6 @@ n_tiles = len(tile_list)
 
 # loop through the tiles
 for tt in range(0,n_tiles):
-
     # only analyse tile of it falls within the ROI
     if io.is_GeoTIFF_within_bbox(datadir+tile_list[tt],N,S,W,E):
         print tile_list[tt]
@@ -68,7 +67,7 @@ for tt in range(0,n_tiles):
         geoTrans_i=None
 
         # calculate cell areas for geographic coordinate system
-        print "\tcalculating cell areas..."
+        print "\t-calculating cell areas..."
         rows,cols=lossyear.shape
         latitude = np.arange(geoTrans[3],rows*geoTrans[5]+geoTrans[3]-0.000001*geoTrans[5],geoTrans[5])+geoTrans[5]/2. # shifting to cell centre
         longitude = np.arange(geoTrans[0],cols*geoTrans[1]+geoTrans[0]-0.000001*geoTrans[1],geoTrans[1])+geoTrans[1]/2. # shifting to cell centre
@@ -78,7 +77,7 @@ for tt in range(0,n_tiles):
         areas = np.empty((latitude.size,1))
         areas[:,0] = geo.calculate_cell_area_column(latitude,geoTrans[1], area_scalar = 1./10.**6,cell_centred=True)
 
-        print "\tfinding nearest neighbour..."
+        print "\t-finding nearest neighbour..."
         #assign closest point in regrid lat to orig
         closest_lat=np.zeros(rows).astype("int")
         closest_long=np.zeros(cols).astype("int")
@@ -88,7 +87,16 @@ for tt in range(0,n_tiles):
         for jj,val in enumerate(longitude):
             closest_long[jj]=np.argsort(np.abs(val-long_host))[0]
 
-        print "\tregridding..."
+        print "\t-regridding..."
+        """
+        for ii in range(0,rows_host):
+            lat_mask = closest_lat==ii
+            if lat_mask.sum()>0:
+                for jj in range(0,cols_host):
+                    long_mask = closest_long==jj
+                    if long_mask.sum() > 0:
+                        regrid[ii,jj] += np.sum(lossyear[np.ix_(lat_mask,long_mask)])
+        """
         # loop through years and assign change to year - expressed as fraction of pixel deforested in regridded dataset
         for yy in range(0,n_years):
             lossarea = np.zeros((rows,cols))
@@ -97,12 +105,14 @@ for tt in range(0,n_tiles):
 
             for ii in range(0,rows_host):
                 lat_mask = closest_lat==ii
-                for jj in range(0,cols_host):
-                    long_mask = closest_long==jj
-                    regrid[ii,jj,yy] = np.sum(lossarea[np.ix_(lat_mask,long_mask)])
-
+                if lat_mask.sum()>0:
+                    for jj in range(0,cols_host):
+                        long_mask = closest_long==jj
+                        if long_mask.sum() > 0:
+                            regrid[ii,jj,yy] += np.sum(lossarea[np.ix_(lat_mask,long_mask)])
+        
 # normalise forest loss to give fraction loss
 for yy in range(0,n_years):
     regrid[:,:,yy]/=areas_host
 
-np.savez('regridded_data',regrid,regrid='GFW')
+np.savez('regridded_data',regrid)
