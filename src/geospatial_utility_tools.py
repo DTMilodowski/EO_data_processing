@@ -147,7 +147,7 @@ def clip_array_to_bbox(array,geoTrans,N,S,W,E):
 #   - target longitude (1D array)
 #   - initial geotransformation info
 #   - initial array
-#   - resampling method; options are 'mean' (default) and 'sum'
+#   - resampling method; options are 'mean' (default), 'sum' and 'nansum'.  doesn't deal with nodata for averaging currently
 # - returns:
 #   - regridded array
 def regrid_array_nearest(target_lat, target_long, geoTrans, array, method = 'mean'):
@@ -175,5 +175,9 @@ def regrid_array_nearest(target_lat, target_long, geoTrans, array, method = 'mea
                 regrid[ii,jj] = np.mean(array[np.ix_(lat_mask,long_mask)])
             elif method == 'sum':
                 regrid[ii,jj] = np.sum(array[np.ix_(lat_mask,long_mask)])
+            elif method == 'nansum':
+                regrid[ii,jj] = np.nansum(array[np.ix_(lat_mask,long_mask)])
+            else:
+                regrid[ii,jj] = np.mean(array[np.ix_(lat_mask,long_mask)])
 
     return regrid
