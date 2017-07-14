@@ -183,3 +183,35 @@ def regrid_array_nearest(target_lat, target_long, geoTrans, array, regrid = np.a
                         regrid[ii,jj] += np.sum(array[np.ix_(lat_mask,long_mask)])
 
     return regrid
+
+
+# Neat interpolation script I found on Stack Overflow and modified to cope with edges a bit better - thanks to Alex Flint!
+def bilinear_interpolate(im, x, y):
+    x = np.asarray(x)
+    y = np.asarray(y)
+
+    x0 = np.floor(x).astype(int)
+    x1 = x0 + 1
+    y0 = np.floor(y).astype(int)
+    y1 = y0 + 1
+
+    if len(x) > 1:
+        x0[x+1==im.shape[1]]-=1 # modification to deal with case where point lies on final row or column
+        y0[y+1==im.shape[0]]-=1
+
+    x0 = np.clip(x0, 0, im.shape[1]-1);
+    x1 = np.clip(x1, 0, im.shape[1]-1);
+    y0 = np.clip(y0, 0, im.shape[0]-1);
+    y1 = np.clip(y1, 0, im.shape[0]-1);
+
+    Ia = im[ y0, x0 ]
+    Ib = im[ y1, x0 ]
+    Ic = im[ y0, x1 ]
+    Id = im[ y1, x1 ]
+
+    wa = (x1-x) * (y1-y)
+    wb = (x1-x) * (y-y0)
+    wc = (x-x0) * (y1-y)
+    wd = (x-x0) * (y-y0)
+
+    return wa*Ia + wb*Ib + wc*Ic + wd*Id
