@@ -159,3 +159,11 @@ def write_array_to_GeoTiff(array,geoTrans,OUTFILE_prefix,EPSG_CODE='4326',north_
 ###############################################################################
 # netCDF functions
 #------------------------------------------------------------------------------
+def load_TRMM_NetCDF(NetCDF_file):
+
+    ds = Dataset(NetCDF_file)
+    pptn = np.transpose(ds.variables['precipitation'])
+    lat =  np.transpose(ds.variables['lat'])
+    lon =  np.transpose(ds.variables['lon'])
+
+    return pptn, lat, lon
