@@ -41,27 +41,18 @@ TRMM_regrid = np.zeros((rows_host,cols_host,n_steps))
 
 # loop through tsteps
 for ss in range(0, n_steps):
-
     # clip time series for last step
     if ss+1 == n_steps:
-        n_days=int(end-steps[-1])
+        n_days=(end-steps[-1]).astype('int')
 
-    # load the datafile - weirdly missing 29th Feb on leap years!
+    # load the datafile
     for dd in range(0,n_days):
         date = steps[ss]+np.timedelta64(dd,'D')
-
-        # problem with 2011-04-01
-        if date == np.datetime64('2011-04-01'):
-            date-=np.timedelta64(1,'D')
-
         year = date.astype('datetime64[Y]').astype(int) + 1970
         month = date.astype('datetime64[M]').astype(int) % 12 + 1
         day = (date - date.astype('datetime64[M]')).astype(int) + 1
-
-        if np.all((day==29,month==2)):
-            day-=1
-        
         tile = datadir+'3B42_Daily.'+str(year).zfill(4)+str(month).zfill(2)+str(day).zfill(2)+'.7.nc4'
+        print tile
         pptn, lat, lon  = io.load_TRMM_NetCDF(tile)
 
         # clip TRMM tile to extent and interpolate to finer resolution using bilinear interpolation
