@@ -50,6 +50,10 @@ for ss in range(0, n_steps):
     for dd in range(0,n_days):
         date = steps[ss]+np.timedelta64(dd,'D')
 
+        # problem with 2011-04-01
+        if date == np.datetime64('2011-04-01'):
+            date-=np.timedelta64(1,'D')
+
         year = date.astype('datetime64[Y]').astype(int) + 1970
         month = date.astype('datetime64[M]').astype(int) % 12 + 1
         day = (date - date.astype('datetime64[M]')).astype(int) + 1
