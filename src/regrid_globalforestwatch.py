@@ -31,13 +31,13 @@ min_treecover = 30 # %
 
 # Time series info
 start = 2001
-end = 2016
+end = 2015
 years = np.arange(start,end)
-n_years = 2016-2001
+n_years = 2015-2001
 
 # Create the host array
-dY = 0.175
-dX = 0.175
+dY = 0.125
+dX = 0.125
 lat_host = np.arange(S,N,dY)+dY/2. # shifting to cell centre
 long_host = np.arange(W,E,dX)+dX/2. # shifting to cell centre
 areas_host = geo.calculate_cell_area_array(lat_host,long_host, area_scalar = 1./10.**6,cell_centred=True)
