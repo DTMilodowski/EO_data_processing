@@ -34,7 +34,6 @@ dY = 0.125
 dX = 0.125
 lat_host = np.arange(S,N,dY)+dY/2. # shifting to cell centre
 lon_host = np.arange(W,E,dX)+dX/2. # shifting to cell centre
-#areas_host = geo.calculate_cell_area_array(lat_host,lon_host, area_scalar = 1./10.**6,cell_centred=True)
 
 rows_host = lat_host.size
 cols_host = lon_host.size
@@ -47,13 +46,16 @@ for ss in range(0, n_steps):
     if ss+1 == n_steps:
         n_days=int(end-steps[-1])
 
-    # load the datafile
+    # load the datafile - weirdly missing 29th Feb on leap years!
     for dd in range(0,n_days):
         date = steps[ss]+np.timedelta64(dd,'D')
 
         year = date.astype('datetime64[Y]').astype(int) + 1970
         month = date.astype('datetime64[M]').astype(int) % 12 + 1
         day = (date - date.astype('datetime64[M]')).astype(int) + 1
+
+        if np.all((day==29,month==2)):
+            day-=1
         
         tile = datadir+'3B42_Daily.'+str(year).zfill(4)+str(month).zfill(2)+str(day).zfill(2)+'.7.nc4'
         pptn, lat, lon  = io.load_TRMM_NetCDF(tile)
@@ -66,4 +68,4 @@ for ss in range(0, n_steps):
 
         TRMM_regrid[:,:,ss] += geo.bilinear_interpolate(pptn,x,y)
 
-        plt.imshow(TRMM_regrid[:,:,ss],origin='lower');plt.show()
+
