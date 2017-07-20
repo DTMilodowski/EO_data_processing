@@ -64,3 +64,4 @@ for ss in range(0, n_steps):
         TRMM_regrid[:,:,ss] += geo.bilinear_interpolate(pptn,x,y)
 
 
+np.savez(TRMM_regrid,savedir+'TRMM_Mexico_regrid_2001_2015.npz')
