@@ -8,6 +8,8 @@
 # import required python libraries 
 import numpy as np
 import sys
+from scipy.ndimage.filters import uniform_filter
+
 
 # import my own libraries
 import data_io as io
@@ -44,7 +46,7 @@ areas_host = geo.calculate_cell_area_array(lat_host,long_host, area_scalar = 1./
 
 rows_host = lat_host.size
 cols_host = long_host.size
-regrid = np.zeros((rows_host,cols_host,n_years))
+regrid = np.zeros((n_years,rows_host,cols_host))
 
 # Read in the list of available GFW tiles
 tile_list=np.genfromtxt(datadir+'tile_list.txt',dtype='string')
@@ -109,10 +111,44 @@ for tt in range(0,n_tiles):
                     for jj in range(0,cols_host):
                         long_mask = closest_long==jj
                         if long_mask.sum() > 0:
-                            regrid[ii,jj,yy] += np.sum(lossarea[np.ix_(lat_mask,long_mask)])
+                            regrid[yy,ii,jj] += np.sum(lossarea[np.ix_(lat_mask,long_mask)])
         
 # normalise forest loss to give fraction loss
 for yy in range(0,n_years):
-    regrid[:,:,yy]/=areas_host
+    regrid[yy,:,:]/=areas_host
 
 np.savez('regridded_data',regrid)
+
+#----------------------------------------------------------------------------------------------------------------------------------------------
+# Now load in FORMA.
+FORMAfile = '/home/dmilodow/DataStore_GCEL/FORMA/forma-1.0-2005-12-19-2015-08-13.csv'
+months, monthly_degrad = io.grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01-01', end_date='2015-01-01')
+FORMA_seasonal = np.zeros((12,monthly_degrad.shape[1],monthly_degrad[2]))
+month = (months-months.astype('datetime64[Y]')).astype('int')
+# smooth seasonal signal using a moving window that is approx 1 degree by 1 degree
+filter_window = np.int(1./dY)
+if filter_window % 2. != 0:
+    filter_window+=1
+for mm in range(0,12):
+    FORMA_seasonal[mm,:,:] = uniform_filter(np.mean(monthly_degrad[month==mm,:,:],axis=0), size=filter_window)
+
+
+# normalise FORMA
+FORMA_sum = np.sum(FORMA_seasonal,axis=0)
+
+for mm in range(0,12):
+    FORMA_seasonal[mm,:,:] = FORMA_seasonal[mm,:,:]/FORMA_sum
+
+#----------------------------------------------------------------------------------------------------------------------------------------------
+# Now downsample GFW to monthly based on FORMA signal
+n_years = regrid.shape[0]
+GFW_monthly = np.zeros((n_years*12,regrid.shape[1],regrid.shape[2])) 
+month = 0
+year = 0
+for mm in range(0,n_years*12):
+    GFW_monthly[mm,:,:]=GFW[year,:,:]*FORMA_seasonal[month,:,:]
+    month+=1
+    if month==12:
+        year+=1
+        month=0
+
