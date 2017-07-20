@@ -200,7 +200,7 @@ def grid_FORMA(FORMAfile, target_resolution):
         date=line.split(',')[-1].strip()
         if date not in ascii_dates:
             ascii_dates.append(date)
-        line=forma)data.readline()
+        line=forma_data.readline()
 
     #sort dates
     ascii_dates.sort()
@@ -220,17 +220,16 @@ def grid_FORMA(FORMAfile, target_resolution):
         #find out the dates
         line=line.split(',')
         date=line[-1].strip()
+
         #get time step id
         idstep=ascii_dates.index(date)
 
         ptlat=float(line[0]);ptlon=float(line[1])
-
         idlat=np.argsort(np.abs(ptlat-lat))[0]
         idlon=np.argsort(np.abs(ptlon-lon))[0]
         
         #weight as function of cos for latitude
-        weight=np.cos(np.radians(ptlat))/np.cos(np.radians(lat[idlat]))
-        
+        weight=np.cos(np.radians(ptlat))/np.cos(np.radians(lat[idlat]))      
         degradation[idstep,idlat,idlon]=degradation[idstep,idlat,idlon]+(original_resolution/target_resolution)*weight*(original_resolution/target_resolution)
         
         line=forma_data.readline();counter+=1
@@ -253,3 +252,60 @@ def grid_FORMA(FORMAfile, target_resolution):
         timesteps[dd]=(day-refday).days
 
     return timesteps, lat, lon, degradation
+
+
+def grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01-01', end_date='2015-01-01'):
+    
+    timesteps, lat, lon, degrad = grid_FORMA(FORMAfile,target_resolution)
+
+    lat_mask = np.all((lat<N,lat>=S),axis=0)
+    lon_mask = np.all((lon<E,lat>=W),axis=0)
+    
+    rows = np.arange(lat.size)[lat_mask]
+    cols = np.arange(lon.size)[lon_mask]
+    degrad=degrad[rows[:, None], cols]
+
+    FORMAstart = np.datetime64('2005-12-19')
+    
+    # create array of dates for original FORMA dataset
+    dates = FORMAstart+timesteps.astype('timedelta64[D]')
+    degrad[degrad<0.] = 0.
+
+    #115 month from jan 2006 to aug 2015
+    months = np.unique(dates.astype('datetime64[M]')[1:])# want to skip the first  of the layers as this is funky
+    N_months = months.size 
+    monthly_degrad=np.zeros([N_months,degrad.shape[1],degrad.shape[2]])
+    
+    #start from degradation detected on or after 17/1/2006
+    refmonth=dates[1].astype('datetime64[M]')-dates[1].astype('datetime64[Y]')
+    monthid=0
+    for dd,cday in enumerate(dates[1:]):
+        print cday
+        #get month of current time step
+        currentmonth=dates[dd+1].astype('datetime64[M]')-dates[dd+1].astype('datetime64[Y]')
+        # same month, just add data        
+        if currentmonth == refmonth:
+            print "same month", cday
+            monthly_degrad[monthid] = monthly_degrad[monthid]+degrad[dd+1]
+        #different month, distribute equally
+        else:
+            #find first day of month
+            begin_month = cday.astype('datetime64[M]').astype('datetime64[D]')
+            ndays = (cday-dates[dd+1-1]).astype('int') # number of days 
+            nday_in_mth = (cday-begin_month).astype('int') #cday.day-1 #number of days in same month as date of record, this way we assume degradation did not occur on day of record
+            nday_prev_mth = ndays-nday_in_mth 
+            print "different month", cday, nday_in_mth, nday_prev_mth, ndays
+
+            #assign portion of degradation to previous month
+            monthly_degrad[monthid] = monthly_degrad[monthid]+degrad[dd+1]*nday_prev_mth/float(ndays)
+            monthid = monthid +1
+            #assign portion of degradation to currentmonth
+            monthly_degrad[monthid] = monthly_degrad[monthid]+degrad[dd+1]*nday_in_mth/float(ndays)
+            refmonth = currentmonth
+            
+    mask = np.all((months>=np.datetime64(start_date),months<np.datetime64(end_date)),axis=0)
+    months = months[mask]
+    monthly_degrad = monthly_degrad[mask,:,:]
+    return months, lat, lon, monthly_degrad
+
+    
