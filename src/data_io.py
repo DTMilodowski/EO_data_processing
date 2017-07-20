@@ -6,6 +6,7 @@ from osgeo import gdal
 import os
 import osr
 import sys
+import datetime as dt
 from netCDF4 import Dataset
 
 # import my own libraries
@@ -167,3 +168,88 @@ def load_TRMM_NetCDF(NetCDF_file):
     lon =  np.transpose(ds.variables['lon'])
 
     return pptn, lat, lon
+
+
+###############################################################################
+# FORMA functions
+# FORMA is rather annoyingly in a ascii file, which is a pain, but we'll have
+# to deal with this for now
+# This section is modified from some original code written by J-F Exbrayat
+#------------------------------------------------------------------------------
+# This function loads FORMA and resamples to a target resolution (the original
+# resolution is 0.00426666667 deg
+# It returns a multi-timestep grid with the fraction of the grid cell disturbed
+# in the previous 16 days
+def grid_FORMA(FORMAfile, target_resolution):
+
+    original_resolution=0.00426666667
+
+    lat=np.arange(90-target_resolution/2.,-90,-target_resolution)
+    lon=np.arange(-180+target_resolution/2.,180,target_resolution)
+
+    #open the ASCII dataset
+    forma_data=file(FORMAfile,'r')
+    #read the header line and the first data line
+    line=forma_data.readline()
+    line=forma_data.readline()
+
+    #create the temporary lists
+    ascii_dates=[]
+    #iterate until the end of file is reached
+    while line != '':
+        date=line.split(',')[-1].strip()
+        if date not in ascii_dates:
+            ascii_dates.append(date)
+        line=forma)data.readline()
+
+    #sort dates
+    ascii_dates.sort()
+
+    #create the array to store data
+    degradation=np.zeros([len(ascii_dates),len(lat),len(lon)])
+
+    #go back to first line of file
+    forma_data.seek(0)
+    #read the header line and the first data line
+    line=forma_data.readline()
+    line=forma_data.readline()
+    #iterate until the end of file is reached
+    counter = 0
+    while line != '':
+
+        #find out the dates
+        line=line.split(',')
+        date=line[-1].strip()
+        #get time step id
+        idstep=ascii_dates.index(date)
+
+        ptlat=float(line[0]);ptlon=float(line[1])
+
+        idlat=np.argsort(np.abs(ptlat-lat))[0]
+        idlon=np.argsort(np.abs(ptlon-lon))[0]
+        
+        #weight as function of cos for latitude
+        weight=np.cos(np.radians(ptlat))/np.cos(np.radians(lat[idlat]))
+        
+        degradation[idstep,idlat,idlon]=degradation[idstep,idlat,idlon]+(original_resolution/target_resolution)*weight*(original_resolution/target_resolution)
+        
+        line=forma_data.readline();counter+=1
+        if counter % 100000 == 0:
+            print counter
+
+    forma_data.close()
+
+    #create the time dimension
+    timesteps=np.empty(len(ascii_dates),'i')
+
+    for dd, date in enumerate(ascii_dates):
+
+        day=np.array(date.split('-'),dtype='i')
+        day=dt.datetime(day[0],day[1],day[2])
+ 
+        if dd==0:
+            refday=day        
+
+        timesteps[dd]=(day-refday).days
+
+    return timesteps, lat, lon, degradation
