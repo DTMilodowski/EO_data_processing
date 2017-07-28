@@ -73,13 +73,13 @@ np.savez(TRMM_regrid,savedir+'TRMM_Mexico_regrid_2001_2015.npz')
 
 #---------------------------------------------------------------------------------------------------------------------------
 # Write to netcdf file
-if ('%s.nc' % (prefix)) in os.listdir(os.getcwd()):
-    os.remove('%s.nc' % (prefix))
+if ('%s.nc' % (savedir+prefix)) in os.listdir(os.getcwd()):
+    os.remove('%s.nc' % (savedir+prefix))
 
-fnc=Dataset('%s.nc' % prefix,'w')
+fnc=Dataset('%s.nc' % savedir+prefix,'w')
 
-fnc.createDimension('latitude',regridlat.shape[0])
-fnc.createDimension('longitude',regridlon.shape[0])
+fnc.createDimension('latitude',lat_host.shape[0])
+fnc.createDimension('longitude',lon_host.shape[0])
 fnc.createDimension('time',len(weeks))
 
 fnc.createVariable('latitude','d',dimensions=['latitude'])
