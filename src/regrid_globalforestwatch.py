@@ -10,6 +10,8 @@ import numpy as np
 import sys
 from scipy.ndimage.filters import uniform_filter
 
+import time
+from netCDF4 import Dataset
 
 # import my own libraries
 import data_io as io
@@ -21,6 +23,9 @@ datadir = '/disk/scratch/local.2/dmilodow/GFW/'
 
 # where will we store data?
 savedir = '/disk/scratch/local.2/dmilodow/GFW/regridded/'
+
+# what will the id tag be for the file prefix
+prefix = 'GFW_monthly_Mexico_0.125deg'
 
 # What is the bounding box of ROI? In this case use Mexico
 N = 33.
@@ -152,3 +157,44 @@ for mm in range(0,n_years*12):
         year+=1
         month=0
 
+months = np.arange(GFW_monthly.shape[0])
+
+#----------------------------------------------------------------------------------------------------------------------------------------------
+# Now write to netcdf file
+if ('%.nc' % prefix) in os.listdir(os.getcwd()):
+    os.remove('%.nc' % savedir+prefix)
+
+fnc=Dataset('%s.nc' % savedir+prefix,'w')
+
+fnc.createDimension('latitude',lat_host.shape[0])
+fnc.createDimension('longitude',long_host.shape[0])
+fnc.createDimension('time',len(months))
+
+fnc.createVariable('latitude','d',dimensions=['latitude'])
+fnc.variables['latitude'][:]=lat_host
+fnc.variables['latitude'].long_name='Latitude N'
+fnc.variables['latitude'].units='degrees'
+
+fnc.createVariable('longitude','d',dimensions=['longitude'])
+fnc.variables['longitude'][:]=long_host
+fnc.variables['longitude'].long_name='Longitude E'
+fnc.variables['longitude'].units='degrees'
+    
+fnc.createVariable('time','i',dimensions=['time'])
+fnc.variables['time'][:]=months
+fnc.variables['time'].units='months'
+fnc.variables['time'].long_name='number of months that have elapsed since 2001-01-01'    
+
+fnc.createVariable('ForestLoss','d',dimensions=['time','latitude','longitude'], zlib = True, complevel = 1)
+fnc.variables['ForestLoss'][:,:,:]=GFW_monthly
+fnc.variables['ForestLoss'].long_name='GFL/FORMA fusion monthly forest loss'
+fnc.variables['ForestLoss'].units='fraction of grid cell in which forest loss has occurred within that month'
+fnc.variables['ForestLoss'].missing_value=0.
+
+fnc.production_date='%s %s' % (time.asctime(),time.tzname[0])
+fnc.production_software='Python %s - netCDF4 library %s' % (sys.version,netCDF4.getlibversion())
+fnc.production_source='UMD Global Forest Loss Dataset & FORMA'
+fnc.production_method='This file contains a forest loss product created by fusing Hansen and FORMA.   Data are regridded to a %4.2fx%4.2f grid.  Monthly forest loss are estimated by scaling annual GFL forest loss extents by ratio of FORMA disturbance for each month divided by annual FORMA disturbance in that year' % (dX,dY)
+
+fnc.sync()
+fnc.close()
