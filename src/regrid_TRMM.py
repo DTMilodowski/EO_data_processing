@@ -3,7 +3,8 @@
 # import required python libraries 
 import numpy as np
 import sys
-
+import time
+from netCDF4 import Dataset
 # import my own libraries
 import data_io as io
 import auxilliary_functions as aux
@@ -14,6 +15,9 @@ datadir = '/disk/scratch/local.2/dmilodow/TRMM/source_files/'
 
 # where will we store data?
 savedir = '/disk/scratch/local.2/dmilodow/TRMM/regridded/'
+
+# what will the id tag be for the file prefix
+prefix = 'TRMM_weekly_Mexico_0.125deg'
 
 # What is the bounding box of ROI? In this case use Mexico
 N = 33.
@@ -27,6 +31,7 @@ end = np.datetime64('2016-01-01','D')
 step = np.timedelta64(7,'D')
 steps  = np.arange(start,end,step)
 n_steps = steps.size
+weeks = np.arange(n_steps)
 n_days = 7
 
 # Create the host array
@@ -65,3 +70,44 @@ for ss in range(0, n_steps):
 
 
 np.savez(TRMM_regrid,savedir+'TRMM_Mexico_regrid_2001_2015.npz')
+
+#---------------------------------------------------------------------------------------------------------------------------
+# Write to netcdf file
+if ('%s.nc' % (prefix)) in os.listdir(os.getcwd()):
+    os.remove('%s.nc' % (prefix))
+
+fnc=Dataset('%s.nc' % prefix,'w')
+
+fnc.createDimension('latitude',regridlat.shape[0])
+fnc.createDimension('longitude',regridlon.shape[0])
+fnc.createDimension('time',len(weeks))
+
+fnc.createVariable('latitude','d',dimensions=['latitude'])
+fnc.variables['latitude'][:]=lat_host
+fnc.variables['latitude'].long_name='Latitude N'
+fnc.variables['latitude'].units='degrees'
+
+fnc.createVariable('longitude','d',dimensions=['longitude'])
+fnc.variables['longitude'][:]=lon_host
+fnc.variables['longitude'].long_name='Longitude E'
+fnc.variables['longitude'].units='degrees'
+
+fnc.createVariable('time','i',dimensions=['time'])
+fnc.variables['time'][:]=weeks
+fnc.variables['time'].units='weeks'
+fnc.variables['time'].long_name='number of weeks that have elapsed since 2001-01-01'
+
+fnc.createVariable('pptn','d',dimensions=['time','latitude','longitude'], zlib = True, complevel = 1)
+fnc.variables['pptn'][:,:,:]=TRMM_regrid
+fnc.variables['pptn'].long_name='Total weekly precipitation'
+fnc.variables['pptn'].units='fraction of grid cell in which forest loss has occurred within that month'
+fnc.variables['pptn'].missing_value=0.
+
+fnc.production_date='%s %s' % (time.asctime(),time.tzname[0])
+fnc.production_software='Python %s - netCDF4 library %s' % (sys.version,netCDF4.getlibversion())
+fnc.production_source='TRMM'
+fnc.production_method='This file contains the total weekly precipitation derived from daily TRMM estimates. Data are regridded to a %4.2fx%4.2f grid. % (dX,dY)
+
+fnc.sync()
+fnc.close()
+print "DONE!"
