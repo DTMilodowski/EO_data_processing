@@ -24,7 +24,7 @@ m1a.drawcoastlines(color='0.2',linewidth=1)
 
 ax1b= plt.subplot2grid((1,2),(0,1)) 
 m1b = Basemap(projection='aea', lat_0=(N+S)/2., lon_0=(E+W)/2., llcrnrlat=S, urcrnrlat=N,llcrnrlon=W, urcrnrlon=E, resolution='i')
-m1b.ax = ax2a
+m1b.ax = ax1b
 m1b.drawcountries(color='0.5',linewidth=1)
 m1b.drawcoastlines(color='0.2',linewidth=1)
 
