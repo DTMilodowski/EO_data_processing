@@ -259,7 +259,7 @@ def grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01
     timesteps, lat, lon, degrad = grid_FORMA(FORMAfile,target_resolution)
 
     lat_mask = np.all((lat<N,lat>=S),axis=0)
-    lon_mask = np.all((lon<E,lat>=W),axis=0)
+    lon_mask = np.all((lon<E,lon>=W),axis=0)
     degrad=degrad[np.ix_(lat_mask,lon_mask)]
 
     FORMAstart = np.datetime64('2005-12-19')
