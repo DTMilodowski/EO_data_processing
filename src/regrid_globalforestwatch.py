@@ -124,10 +124,13 @@ for yy in range(0,n_years):
 
 np.savez('regridded_data',regrid)
 
+
+
+regrid = np.load('regridded_data.npz')['arr_0']
 #----------------------------------------------------------------------------------------------------------------------------------------------
 # Now load in FORMA.
 FORMAfile = '/home/dmilodow/DataStore_GCEL/FORMA/forma-1.0-2005-12-19-2015-08-13.csv'
-months, monthly_degrad = io.grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01-01', end_date='2015-01-01')
+months, monthly_degrad = io.grid_FORMA_monthly(FORMAfile,dX,N,S,E,W,start_date = '2006-01-01', end_date='2015-01-01')
 FORMA_seasonal = np.zeros((12,monthly_degrad.shape[1],monthly_degrad[2]))
 month = (months-months.astype('datetime64[Y]')).astype('int')
 # smooth seasonal signal using a moving window that is approx 1 degree by 1 degree
