@@ -256,24 +256,30 @@ def grid_FORMA(FORMAfile, target_resolution):
 
 def grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01-01', end_date='2015-01-01'):
     
-    timesteps, lat, lon, degrad = grid_FORMA(FORMAfile,target_resolution)
+    timesteps, lat, lon, degrad_i = grid_FORMA(FORMAfile,target_resolution)
 
     lat_mask = np.all((lat<N,lat>=S),axis=0)
     lon_mask = np.all((lon<E,lon>=W),axis=0)
-    degrad=degrad[np.ix_(lat_mask,lon_mask)] # need to loop through for this as it isn't working at the moment
     
-
     FORMAstart = np.datetime64('2005-12-19')
     
     # create array of dates for original FORMA dataset
     dates = FORMAstart+timesteps.astype('timedelta64[D]')
-    degrad[degrad<0.] = 0.
 
     #115 month from jan 2006 to aug 2015
     months = np.unique(dates.astype('datetime64[M]')[1:])# want to skip the first  of the layers as this is funky
     N_months = months.size 
     monthly_degrad=np.zeros([N_months,degrad.shape[1],degrad.shape[2]])
     
+    # Clip the area to ROI
+    degrad = np.zeros((N_months,lat_mask.sum(),lon_mask.sum()))
+    for mm in range(0,N_months):
+        degrad_iter = degrad_i[mm,:,:]
+        degrad[mm,:,:] = degrad_iter[np.ix_(lat_mask,lon_mask)] # need to loop through for this as it isn't working at the moment
+    degrad[degrad<0.] = 0.
+    degrad_i=None
+    degrad_iter=None
+
     #start from degradation detected on or after 17/1/2006
     refmonth=dates[1].astype('datetime64[M]')-dates[1].astype('datetime64[Y]')
     monthid=0
