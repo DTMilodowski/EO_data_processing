@@ -7,11 +7,12 @@
 
 # import required python libraries 
 import numpy as np
-import sys
+import sys,os
 from scipy.ndimage.filters import uniform_filter
 
 import time
 from netCDF4 import Dataset
+import netCDF4
 
 # import my own libraries
 import data_io as io
@@ -131,7 +132,7 @@ regrid = np.load('regridded_data.npz')['arr_0']
 # Now load in FORMA.
 FORMAfile = '/home/dmilodow/DataStore_GCEL/FORMA/forma-1.0-2005-12-19-2015-08-13.csv'
 months, monthly_degrad = io.grid_FORMA_monthly(FORMAfile,dX,N,S,E,W,start_date = '2006-01-01', end_date='2015-01-01')
-FORMA_seasonal = np.zeros((12,monthly_degrad.shape[1],monthly_degrad[2]))
+FORMA_seasonal = np.zeros((12,monthly_degrad.shape[1],monthly_degrad.shape[2]))
 month = (months-months.astype('datetime64[Y]')).astype('int')
 # smooth seasonal signal using a moving window that is approx 1 degree by 1 degree
 filter_window = np.int(1./dY)
@@ -143,35 +144,36 @@ for mm in range(0,12):
 
 # normalise FORMA
 FORMA_sum = np.sum(FORMA_seasonal,axis=0)
-
+FORMA_norm = FORMA_sum.copy()
+FORMA_norm[FORMA_sum==0]=1 # note that this just accounts for cases where there is no detected deforestation
 for mm in range(0,12):
-    FORMA_seasonal[mm,:,:] = FORMA_seasonal[mm,:,:]/FORMA_sum
+    FORMA_seasonal[mm,:,:] = FORMA_seasonal[mm,:,:]/FORMA_norm
 
 #----------------------------------------------------------------------------------------------------------------------------------------------
 # Now downsample GFW to monthly based on FORMA signal
-n_years = regrid.shape[0]
-GFW_monthly = np.zeros((n_years*12,regrid.shape[1],regrid.shape[2])) 
+n_years = regrid.shape[-1]
+GFW_monthly = np.zeros((n_years*12,regrid.shape[0],regrid.shape[1])) 
 month = 0
 year = 0
 for mm in range(0,n_years*12):
-    GFW_monthly[mm,:,:]=GFW[year,:,:]*FORMA_seasonal[month,:,:]
+    GFW_monthly[mm,:,:]=regrid[:,:,year]*FORMA_seasonal[month,:,:]
     month+=1
     if month==12:
         year+=1
         month=0
 
-months = np.arange(GFW_monthly.shape[0])
+months_out = np.arange(GFW_monthly.shape[0])
 
 #----------------------------------------------------------------------------------------------------------------------------------------------
 # Now write to netcdf file
-if ('%.nc' % prefix) in os.listdir(os.getcwd()):
-    os.remove('%.nc' % savedir+prefix)
+if ('%s' % prefix+'.nc') in os.listdir(os.getcwd()):
+    os.remove('%s' % savedir+prefix+'.nc')
 
-fnc=Dataset('%s.nc' % savedir+prefix,'w')
+fnc=Dataset('%s' % savedir+prefix+'.nc','w')
 
 fnc.createDimension('latitude',lat_host.shape[0])
 fnc.createDimension('longitude',long_host.shape[0])
-fnc.createDimension('time',len(months))
+fnc.createDimension('time',len(months_out))
 
 fnc.createVariable('latitude','d',dimensions=['latitude'])
 fnc.variables['latitude'][:]=lat_host
@@ -184,7 +186,7 @@ fnc.variables['longitude'].long_name='Longitude E'
 fnc.variables['longitude'].units='degrees'
     
 fnc.createVariable('time','i',dimensions=['time'])
-fnc.variables['time'][:]=months
+fnc.variables['time'][:]=months_out
 fnc.variables['time'].units='months'
 fnc.variables['time'].long_name='number of months that have elapsed since 2001-01-01'    
 
