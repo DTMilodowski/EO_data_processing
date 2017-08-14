@@ -269,7 +269,6 @@ def grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01
     #115 month from jan 2006 to aug 2015
     months = np.unique(dates.astype('datetime64[M]')[1:])# want to skip the first  of the layers as this is funky
     N_months = months.size 
-    monthly_degrad=np.zeros([N_months,degrad.shape[1],degrad.shape[2]])
     
     # Clip the area to ROI
     degrad = np.zeros((N_months,lat_mask.sum(),lon_mask.sum()))
@@ -279,6 +278,8 @@ def grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01
     degrad[degrad<0.] = 0.
     degrad_i=None
     degrad_iter=None
+
+    monthly_degrad=np.zeros([N_months,degrad.shape[1],degrad.shape[2]])
 
     #start from degradation detected on or after 17/1/2006
     refmonth=dates[1].astype('datetime64[M]')-dates[1].astype('datetime64[Y]')
