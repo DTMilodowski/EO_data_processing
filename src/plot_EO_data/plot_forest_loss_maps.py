@@ -20,9 +20,11 @@ lon = np.arange(W,E,dX)#+dX/2. # shifting to cell centre
 lon_grid,lat_grid = np.meshgrid(lon,lat)
 
 # Load in GFW
-regrid = np.load('regridded_data.npz')['arr_0']
-N_years=regrid.shape[-1]
-cum_regrid = np.cumsum(regrid,axis=2)
+regrid = np.load('GFW_annual.npz')['arr_0']
+N_years=regrid.shape[0]
+cum_regrid = np.cumsum(regrid,axis=0)
+
+ForestLoss=np.ma.masked_where(regrid<=0,regrid)
 
 # Now make the plots
 for i in range(0,N_years):
@@ -32,7 +34,7 @@ for i in range(0,N_years):
     m1a = Basemap(projection='aea', lat_0=(N+S)/2., lon_0=(E+W)/2., llcrnrlat=S, urcrnrlat=N,llcrnrlon=W, urcrnrlon=E, resolution='i')
     m1a.ax = ax1a
     x,y = m1a(lon_grid,lat_grid)
-    m1a.pcolormesh(x,y,regrid[:,:,i],vmin=0.0,vmax=0.2, cmap='jet', rasterized=False, edgecolor='0.6', linewidth=0)
+    m1a.pcolormesh(x,y,ForestLoss[i,:,:],vmin=0.0,vmax=0.2, cmap='jet', rasterized=True, edgecolor='0.6', linewidth=0)
     #cbar = m1a.colorbar()
     #cbar.solids.set_edgecolor("face")
     #cbar.set_ticks([0,0.1,0.2])
@@ -46,7 +48,7 @@ for i in range(0,N_years):
     m1b = Basemap(projection='aea', lat_0=(N+S)/2., lon_0=(E+W)/2., llcrnrlat=S, urcrnrlat=N,llcrnrlon=W, urcrnrlon=E, resolution='i')
     m1b.ax = ax1b
     x,y = m1b(lon_grid,lat_grid)
-    m1b.pcolormesh(x,y,cum_regrid[:,:,i],vmin=0.0,vmax=0.5, cmap='jet', rasterized=False, edgecolor='0.6', linewidth=0)
+    m1b.pcolormesh(x,y,cum_regrid[i,:,:],vmin=0.0,vmax=0.5, cmap='jet', rasterized=True, edgecolor='0.6', linewidth=0)
     m1b.drawcountries(color='0.6',linewidth=1)
     m1b.drawcoastlines(color='0.5',linewidth=1)
 
