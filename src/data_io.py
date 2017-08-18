@@ -267,7 +267,7 @@ def grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01
     dates = FORMAstart+timesteps.astype('timedelta64[D]')
     
     # Clip the area to ROI
-    degrad = np.zeros((dates.size,lat_mask.sum(),lon_mask.sum()))
+    degrad = np.zeros((dates.size,lon_mask.sum(),lat_mask.sum()))
     for dd in range(0,dates.size):
         degrad_iter = degrad_i[dd,:,:]
         degrad[dd,:,:] = degrad_iter[np.ix_(lat_mask,lon_mask)] # need to loop through for this as it isn't working at the moment
