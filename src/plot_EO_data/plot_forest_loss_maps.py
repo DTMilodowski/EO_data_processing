@@ -40,10 +40,10 @@ for i in range(0,N_months):
     m1a = Basemap(projection='aea', lat_0=(N+S)/2., lon_0=(E+W)/2., llcrnrlat=S, urcrnrlat=N,llcrnrlon=W, urcrnrlon=E, resolution='i')
     m1a.ax = ax1a
     x,y = m1a(lon_grid,lat_grid)
-    im1 = m1a.pcolormesh(x,y,GFW[i,:,:],vmin=0.0,vmax=0.04, rasterized=True, edgecolor='0.6', linewidth=0)
+    im1 = m1a.pcolormesh(x,y,GFW[i,:,:],vmin=0.0,vmax=0.004, rasterized=True, edgecolor='0.6', linewidth=0)
     cbar = m1a.colorbar(im1)
     cbar.solids.set_edgecolor("face")
-    cbar.set_ticks([0,0.02,0.04])
+    cbar.set_ticks([0,0.002,0.004])
 
     m1a.drawcountries(color='0.6',linewidth=1)
     m1a.drawcoastlines(color='0.5',linewidth=1)
@@ -61,4 +61,4 @@ for i in range(0,N_months):
     cbar.solids.set_edgecolor("face")
     cbar.set_ticks([0,0.5,1])
 
-    plt.savefig('plot_EO_data/ForestLossMonthly_tstep'+str(i).zfill(2)+'.png')
+    plt.savefig('plot_EO_data/ForestLossMonthly_tstep'+str(i).zfill(3)+'.png')
