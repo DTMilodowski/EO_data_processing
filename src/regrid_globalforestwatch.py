@@ -132,23 +132,27 @@ regrid = np.load('GFW_annual.npz')['arr_0']
 # Now load in FORMA.
 FORMAfile = '/home/dmilodow/DataStore_GCEL/FORMA/forma-1.0-2005-12-19-2015-08-13.csv'
 months,lat_FORMA,lon_FORMA, monthly_degrad = io.grid_FORMA_monthly(FORMAfile,dX,N,S,E,W,start_date = '2006-01-01', end_date='2015-01-01')
+
 FORMA_seasonal = np.zeros((12,monthly_degrad.shape[1],monthly_degrad.shape[2]))
 month = (months-months.astype('datetime64[Y]')).astype('int')
 # smooth seasonal signal using a moving window that is approx 1 degree by 1 degree
-filter_window = np.int(1./dY)
+filter_window = np.int(2./dY)
+total_FORMA=np.zeros(12)
 if filter_window % 2. != 0:
     filter_window+=1
 for mm in range(0,12):
     FORMA_seasonal[mm,:,:] = uniform_filter(np.mean(monthly_degrad[month==mm,:,:],axis=0), size=filter_window)
+    total_FORMA[mm] = np.mean(monthly_degrad[month==mm,:,:],axis=0).sum()
 
-
+norm_FORMA=total_FORMA/total_FORMA.sum()
 # normalise FORMA
 FORMA_sum = np.sum(FORMA_seasonal,axis=0)
 FORMA_norm = FORMA_sum.copy()
-FORMA_norm[FORMA_sum==0]=1 # note that this just accounts for cases where there is no detected deforestation
+FORMA_norm[FORMA_sum==0]=1. # note that this just accounts for cases where there is no detected deforestation
+FORMA_seasonal_norm = np.zeros(FORMA_seasonal.shape)
 for mm in range(0,12):
-    FORMA_seasonal[mm,:,:] = FORMA_seasonal[mm,:,:]/FORMA_norm
-
+    FORMA_seasonal_norm[mm,:,:] = np.flipud(FORMA_seasonal[mm,:,:]/FORMA_norm)
+    #FORMA_seasonal_norm[mm,:,:] = np.flipud(FORMA_seasonal[mm,:,:])
 #----------------------------------------------------------------------------------------------------------------------------------------------
 # Now downsample GFW to monthly based on FORMA signal
 n_years = regrid.shape[0]
@@ -156,7 +160,8 @@ GFW_monthly = np.zeros((n_years*12,regrid.shape[1],regrid.shape[2]))
 month = 0
 year = 0
 for mm in range(0,n_years*12):
-    GFW_monthly[mm,:,:]=regrid[year,:,:]*FORMA_seasonal[month,:,:]
+    #GFW_monthly[mm,:,:]=regrid[year,:,:]*FORMA_seasonal_norm[month,:,:]
+    GFW_monthly[mm,:,:]=regrid[year,:,:]*norm_FORMA[month]
     month+=1
     if month==12:
         year+=1
