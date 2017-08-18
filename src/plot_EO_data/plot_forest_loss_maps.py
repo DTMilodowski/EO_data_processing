@@ -33,7 +33,7 @@ cum_GFW = np.cumsum(GFW,axis=0)
 ForestLoss=np.ma.masked_where(GFW<=0,GFW)
 
 # Now make the plots
-for i in range(0,N_years):
+for i in range(0,N_months):
     fig = plt.figure(1, facecolor='White',figsize=[5,8])
     ax1a= plt.subplot2grid((2,1),(0,0)) 
     ax1a.set_title('Monthly forest loss')
