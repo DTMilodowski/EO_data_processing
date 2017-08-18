@@ -131,7 +131,7 @@ regrid = np.load('GFW_annual.npz')['arr_0']
 #----------------------------------------------------------------------------------------------------------------------------------------------
 # Now load in FORMA.
 FORMAfile = '/home/dmilodow/DataStore_GCEL/FORMA/forma-1.0-2005-12-19-2015-08-13.csv'
-months, monthly_degrad = io.grid_FORMA_monthly(FORMAfile,dX,N,S,E,W,start_date = '2006-01-01', end_date='2015-01-01')
+months,lat_FORMA,lon_FORMA, monthly_degrad = io.grid_FORMA_monthly(FORMAfile,dX,N,S,E,W,start_date = '2006-01-01', end_date='2015-01-01')
 FORMA_seasonal = np.zeros((12,monthly_degrad.shape[1],monthly_degrad.shape[2]))
 month = (months-months.astype('datetime64[Y]')).astype('int')
 # smooth seasonal signal using a moving window that is approx 1 degree by 1 degree
@@ -163,7 +163,7 @@ for mm in range(0,n_years*12):
         month=0
 
 months_out = np.arange(GFW_monthly.shape[0])
-
+np.savez('GFW_monthly.npz',GFW_monthly)
 #----------------------------------------------------------------------------------------------------------------------------------------------
 # Now write to netcdf file
 if ('%s' % prefix+'.nc') in os.listdir(os.getcwd()):
