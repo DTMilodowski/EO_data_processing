@@ -26,11 +26,11 @@ lon = np.arange(W,E,dX)#+dX/2. # shifting to cell centre
 lon_grid,lat_grid = np.meshgrid(lon,lat)
 
 # Load in GFW
-regrid = np.load('GFW_annual.npz')['arr_0']
-N_years=regrid.shape[0]
-cum_regrid = np.cumsum(regrid,axis=0)
+GFW = np.load('GFW_monthly.npz')['arr_0']
+N_months=GFW.shape[0]
+cum_GFW = np.cumsum(GFW,axis=0)
 
-ForestLoss=np.ma.masked_where(regrid<=0,regrid)
+ForestLoss=np.ma.masked_where(GFW<=0,GFW)
 
 # Now make the plots
 for i in range(0,N_years):
@@ -40,10 +40,10 @@ for i in range(0,N_years):
     m1a = Basemap(projection='aea', lat_0=(N+S)/2., lon_0=(E+W)/2., llcrnrlat=S, urcrnrlat=N,llcrnrlon=W, urcrnrlon=E, resolution='i')
     m1a.ax = ax1a
     x,y = m1a(lon_grid,lat_grid)
-    im1 = m1a.pcolormesh(x,y,regrid[i,:,:],vmin=0.0,vmax=0.1, rasterized=True, edgecolor='0.6', linewidth=0)
+    im1 = m1a.pcolormesh(x,y,GFW[i,:,:],vmin=0.0,vmax=0.04, rasterized=True, edgecolor='0.6', linewidth=0)
     cbar = m1a.colorbar(im1)
     cbar.solids.set_edgecolor("face")
-    cbar.set_ticks([0,0.05,0.1])
+    cbar.set_ticks([0,0.02,0.04])
 
     m1a.drawcountries(color='0.6',linewidth=1)
     m1a.drawcoastlines(color='0.5',linewidth=1)
@@ -54,11 +54,11 @@ for i in range(0,N_years):
     m1b = Basemap(projection='aea', lat_0=(N+S)/2., lon_0=(E+W)/2., llcrnrlat=S, urcrnrlat=N,llcrnrlon=W, urcrnrlon=E, resolution='i')
     m1b.ax = ax1b
     x,y = m1b(lon_grid,lat_grid)
-    im2=m1b.pcolormesh(x,y,cum_regrid[i,:,:],vmin=0.0,vmax=1, rasterized=True, edgecolor='0.6', linewidth=0)
+    im2=m1b.pcolormesh(x,y,cum_GFW[i,:,:],vmin=0.0,vmax=1, rasterized=True, edgecolor='0.6', linewidth=0)
     m1b.drawcountries(color='0.6',linewidth=1)
     m1b.drawcoastlines(color='0.5',linewidth=1)
     cbar = m1b.colorbar(im2)
     cbar.solids.set_edgecolor("face")
     cbar.set_ticks([0,0.5,1])
 
-    plt.savefig('plot_EO_data/ForestLoss_tstep'+str(i).zfill(2)+'.png')
+    plt.savefig('plot_EO_data/ForestLossMonthly_tstep'+str(i).zfill(2)+'.png')
