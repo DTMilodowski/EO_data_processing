@@ -310,6 +310,6 @@ def grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01
     mask = np.all((months>=np.datetime64(start_date),months<np.datetime64(end_date)),axis=0)
     months = months[mask]
     monthly_degrad = monthly_degrad[mask,:,:]
-    return months, lat, lon, monthly_degrad
+    return months, lat_mask, lon_mask, monthly_degrad
 
     
