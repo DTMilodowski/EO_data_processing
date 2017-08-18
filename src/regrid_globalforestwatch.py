@@ -123,11 +123,11 @@ for tt in range(0,n_tiles):
 for yy in range(0,n_years):
     regrid[yy,:,:]/=areas_host
 
-np.savez('regridded_data',regrid)
+np.savez('GFW_annual.npz',regrid)
 
 
 
-regrid = np.load('regridded_data.npz')['arr_0']
+regrid = np.load('GFW_annual.npz')['arr_0']
 #----------------------------------------------------------------------------------------------------------------------------------------------
 # Now load in FORMA.
 FORMAfile = '/home/dmilodow/DataStore_GCEL/FORMA/forma-1.0-2005-12-19-2015-08-13.csv'
@@ -151,12 +151,12 @@ for mm in range(0,12):
 
 #----------------------------------------------------------------------------------------------------------------------------------------------
 # Now downsample GFW to monthly based on FORMA signal
-n_years = regrid.shape[-1]
-GFW_monthly = np.zeros((n_years*12,regrid.shape[0],regrid.shape[1])) 
+n_years = regrid.shape[0]
+GFW_monthly = np.zeros((n_years*12,regrid.shape[1],regrid.shape[2])) 
 month = 0
 year = 0
 for mm in range(0,n_years*12):
-    GFW_monthly[mm,:,:]=regrid[:,:,year]*FORMA_seasonal[month,:,:]
+    GFW_monthly[mm,:,:]=regrid[year,:,:]*FORMA_seasonal[month,:,:]
     month+=1
     if month==12:
         year+=1
