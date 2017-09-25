@@ -55,7 +55,7 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
                 # data in this way
                 dataset = Dataset(NetCDF_file)
                 
-                if variable == 'ssrd':
+                if variable in ['ssrd','u10w','v10w']:
                     N = dataset.variables['time'][:].size/2
                 else:
                     N = dataset.variables['time'][:].size/4
@@ -71,14 +71,17 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
                     if variable == 'mx2t':
                         metvar[tt] = np.max(eravar[ii*4:(ii+1)*4])
                     # - instantaneous temperatures and dewpoint temperatures,
-                    #   wind speed, surface pressure;
+                    #   surface pressure;
                     #   four per day, take average
-                    if variable in ['t2m','d2m','u10w','v10w']:
+                    if variable in ['t2m','d2m','psurf']:
                         metvar[tt] = np.mean(eravar[ii*4:(ii+1)*4])
                     # - ssrd - only two timesteps per day, which need to be summed
                     if variable == 'ssrd':
                         metvar[tt] = np.sum(eravar[ii*2:(ii+1)*2])
-                        
+                    # - wind speeds - only two timesteps per day, average
+                    if variable in ['u10w','v10w']:
+                        metvar[tt] = np.mean(eravar[ii*2:(ii+1)*2])
+
                     # iterate timestep
                     tt+=1
 
