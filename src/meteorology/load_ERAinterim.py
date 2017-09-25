@@ -85,7 +85,7 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
                     # iterate timestep
                     tt+=1
 
-                    return date,metvar
+    return date,metvar
 
 
 # Calculate rh based on t2m and d2m
