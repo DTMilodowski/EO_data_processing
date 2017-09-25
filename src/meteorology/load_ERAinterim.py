@@ -86,7 +86,7 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
 
 
 # Calculate rh based on t2m and d2m
-def calculate_rh_daily(path2files,variable,start_month,start_year,end_month,end_year):
+def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
     
     # Note that ERA Interim times are in gregorian calendar format, hours after
     # 1900-01-01 00:00
@@ -132,7 +132,7 @@ def calculate_rh_daily(path2files,variable,start_month,start_year,end_month,end_
 
 
 # Calculate vpd based on t2m and d2m
-def calculate_vpd_daily(path2files,variable,start_month,start_year,end_month,end_year):
+def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
     
     # Note that ERA Interim times are in gregorian calendar format, hours after
     # 1900-01-01 00:00
@@ -178,3 +178,47 @@ def calculate_vpd_daily(path2files,variable,start_month,start_year,end_month,end
                     tt+=1
 
     return date, vpd_daily
+
+# Calculate vpd based on t2m and d2m
+def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_year):
+    
+    # Note that ERA Interim times are in gregorian calendar format, hours after
+    # 1900-01-01 00:00
+    NetCDF_file = '%s/u10w_%02i%04i.nc' % (path2files,start_month,start_year)
+    dataset = Dataset(NetCDF_file)
+    start_greg = int(dataset.variables['time'][0])
+    start_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(start_greg,'h')).astype('datetime64[D]')
+
+    NetCDF_file = '%s/u10w_%02i%04i.nc' % (path2files,end_month,end_year)
+    dataset = Dataset(NetCDF_file)
+    end_greg = int(dataset.variables['time'][-1])
+    end_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(end_greg,'h')).astype('datetime64[D]')
+    
+    # create date list
+    year = np.arange(start_year,end_year+1)
+    date = np.arange(start_date,end_date)
+    # create host array for met data    
+    w_daily = np.zeros(date.size)*np.nan
+
+    tt = 0
+    for yy in range(0,year.size):
+        for mm in range(0,12):
+            if tt < date.size:
+                u_file = '%s/u10w_%02i%04i.nc' % (path2files,month[mm],year[yy])
+                v_file = '%s/v10w_%02i%04i.nc' % (path2files,month[mm],year[yy])
+                # note that scale and offsets automatically applied when reading
+                # data in this way
+                ds_u = Dataset(u_file)
+                ds_w = Dataset(v_file)
+
+                N = dataset.variables['time'][:].size/4
+
+                u = ds_u.variables[variable][:]
+                v = ds_v.variables[variable][:]
+
+                w = np.sqrt(u*u + v*v)
+                for ii in range(0,N):          
+                    w_daily = np.mean(w[ii*4:(ii+1)*4])
+                    tt+=1
+
+    return date, w_daily
