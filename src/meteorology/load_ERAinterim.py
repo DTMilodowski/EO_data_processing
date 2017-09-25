@@ -178,17 +178,3 @@ def calculate_vpd_daily(path2files,variable,start_month,start_year,end_month,end
                     tt+=1
 
     return date, vpd_daily
-
-
-# saturation vapour pressure
-            es = 0.6108*exp(17.27*(tair[i]/(tair[i] + 237.3))) # units of kPa
-            
-            #es = 610.94*exp((17.625*tair[i])/(243.04+tair[i])) # units of Pa
-            #es = es/1000 # units of kPa
-            
-            # actual vapour pressure
-            # ea = rh[i]/100 * es
-            ea = (rh[i]*es)/100
-            
-            # vpd
-            vpd.append(es - ea)
