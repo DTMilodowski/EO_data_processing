@@ -55,7 +55,7 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
                 # data in this way
                 dataset = Dataset(NetCDF_file)
                 
-                if variable in ['ssrd','u10w','v10w']:
+                if variable in ['ssrd','u10w','v10w','mn2t','mx2t']:
                     N = dataset.variables['time'][:].size/2
                 else:
                     N = dataset.variables['time'][:].size/4
@@ -64,12 +64,12 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
                     
                 for ii in range(0,N):
                     # now need to use variable specific processing chain
-                    # - minimum and maximum temperatures - four per day, take
+                    # - minimum and maximum temperatures - two per day, take
                     #   minimum and maximum respectively
                     if variable == 'mn2t':
-                        metvar[tt] = np.min(eravar[ii*4:(ii+1)*4])
+                        metvar[tt] = np.min(eravar[ii*2:(ii+1)*2])
                     if variable == 'mx2t':
-                        metvar[tt] = np.max(eravar[ii*4:(ii+1)*4])
+                        metvar[tt] = np.max(eravar[ii*2:(ii+1)*2])
                     # - instantaneous temperatures and dewpoint temperatures,
                     #   surface pressure;
                     #   four per day, take average
