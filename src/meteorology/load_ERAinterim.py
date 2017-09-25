@@ -82,7 +82,7 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
                     # iterate timestep
                     tt+=1
 
-    return date,metvar
+                    return date,metvar
 
 
 # Calculate rh based on t2m and d2m
@@ -128,16 +128,67 @@ def calculate_rh_daily(path2files,variable,start_month,start_year,end_month,end_
                     rh_daily = np.mean(rh[ii*4:(ii+1)*4])
                     tt+=1
 
-    return rh_daily
+    return date, rh_daily
 
 
-"""
-                    # Also options for variables that need calculating on the fly
-                    # - relative humidity
-                    if variable == 'rh':
-                        es_T = 610.94*exp((17.625*tair_site_unpacked)/(243.04+tair_site_unpacked))
-      
-                        es_Td = 610.94*exp((17.625*dewpoint_site_unpacked)/(243.04+dewpoint_site_unpacked))
-                        
-                        rh_site = 100*(es_Td/es_T)
-"""
+# Calculate vpd based on t2m and d2m
+def calculate_vpd_daily(path2files,variable,start_month,start_year,end_month,end_year):
+    
+    # Note that ERA Interim times are in gregorian calendar format, hours after
+    # 1900-01-01 00:00
+    NetCDF_file = '%s/d2m_%02i%04i.nc' % (path2files,start_month,start_year)
+    dataset = Dataset(NetCDF_file)
+    start_greg = int(dataset.variables['time'][0])
+    start_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(start_greg,'h')).astype('datetime64[D]')
+
+    NetCDF_file = '%s/d2m_%02i%04i.nc' % (path2files,end_month,end_year)
+    dataset = Dataset(NetCDF_file)
+    end_greg = int(dataset.variables['time'][-1])
+    end_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(end_greg,'h')).astype('datetime64[D]')
+    
+    # create date list
+    year = np.arange(start_year,end_year+1)
+    date = np.arange(start_date,end_date)
+    # create host array for met data    
+    vpd_daily = np.zeros(date.size)*np.nan
+
+    tt = 0
+    for yy in range(0,year.size):
+        for mm in range(0,12):
+            if tt < date.size:
+                d2m_file = '%s/d2m_%02i%04i.nc' % (path2files,month[mm],year[yy])
+                t2m_file = '%s/d2m_%02i%04i.nc' % (path2files,month[mm],year[yy])
+                # note that scale and offsets automatically applied when reading
+                # data in this way
+                ds_d2m = Dataset(d2m_file)
+                ds_t2m = Dataset(t2m_file)
+
+                N = dataset.variables['time'][:].size/4
+
+                d2m = ds_d2m.variables[variable][:] - 273.15 # convert from K to oC
+                t2m = ds_t2m.variables[variable][:] - 273.15 # convert from K to oC
+
+                es_T = 610.94*np.exp((17.625*t2m)/(243.04+t2m))
+                es_Td = 610.94*np.exp((17.625*d2m)/(243.04+d2m))
+                rh = 100.*(es_Td/es_T)
+                ea = (rh[i]*es_T)/100.
+                vpd = es-ea
+                for ii in range(0,N):          
+                    vpd_daily = np.mean(vpd[ii*4:(ii+1)*4])
+                    tt+=1
+
+    return date, vpd_daily
+
+
+# saturation vapour pressure
+            es = 0.6108*exp(17.27*(tair[i]/(tair[i] + 237.3))) # units of kPa
+            
+            #es = 610.94*exp((17.625*tair[i])/(243.04+tair[i])) # units of Pa
+            #es = es/1000 # units of kPa
+            
+            # actual vapour pressure
+            # ea = rh[i]/100 * es
+            ea = (rh[i]*es)/100
+            
+            # vpd
+            vpd.append(es - ea)
