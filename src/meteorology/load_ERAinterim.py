@@ -87,7 +87,9 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
 
                     # iterate timestep
                     tt+=1
-
+    
+    if variable in ['t2m','d2m','mn2t','mx2t']:
+        metvar -= 273.15 # convert from K to oC
     return date,metvar
 
 
