@@ -28,12 +28,13 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
     # date of the time series
     # Note that ERA Interim times are in gregorian calendar format, hours after
     # 1900-01-01 00:00
-    NetCDF_file = '%s/%s_%02i%04i.nc' % (path2files, variable,start_month,start_year)
+    NetCDF_file = '%s/%s_%04i%02i.nc' % (path2files, variable,start_year,start_month)
+    print NetCDF_file
     dataset = Dataset(NetCDF_file)
     start_greg = int(dataset.variables['time'][0])
     start_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(start_greg,'h')).astype('datetime64[D]')
 
-    NetCDF_file = '%s/%s_%02i%04i.nc' % (path2files, variable,end_month,end_year)
+    NetCDF_file = '%s/%s_%04i%02i.nc' % (path2files, variable,end_year,end_month)
     dataset = Dataset(NetCDF_file)
     end_greg = int(dataset.variables['time'][-1])
     end_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(end_greg,'h')).astype('datetime64[D]')
@@ -48,7 +49,7 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
     for yy in range(0,year.size):
         for mm in range(0,12):
             if tt < date.size:
-                NetCDF_file = '%s/%s_%02i%04i.nc' % (path2files, variable,month[mm],year[yy])
+                NetCDF_file = '%s/%s_%04i%02i.nc' % (path2files, variable,year[yy],month[mm])
                 print NetCDF_file
 
                 # note that scale and offsets automatically applied when reading in
@@ -93,12 +94,12 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
     
     # Note that ERA Interim times are in gregorian calendar format, hours after
     # 1900-01-01 00:00
-    NetCDF_file = '%s/d2m_%02i%04i.nc' % (path2files,start_month,start_year)
+    NetCDF_file = '%s/d2m_%04i%02i.nc' % (path2files,start_year,start_month)
     dataset = Dataset(NetCDF_file)
     start_greg = int(dataset.variables['time'][0])
     start_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(start_greg,'h')).astype('datetime64[D]')
 
-    NetCDF_file = '%s/d2m_%02i%04i.nc' % (path2files,end_month,end_year)
+    NetCDF_file = '%s/d2m_%04i%02i.nc' % (path2files,end_year,end_month)
     dataset = Dataset(NetCDF_file)
     end_greg = int(dataset.variables['time'][-1])
     end_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(end_greg,'h')).astype('datetime64[D]')
@@ -113,8 +114,8 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
     for yy in range(0,year.size):
         for mm in range(0,12):
             if tt < date.size:
-                d2m_file = '%s/d2m_%02i%04i.nc' % (path2files,month[mm],year[yy])
-                t2m_file = '%s/d2m_%02i%04i.nc' % (path2files,month[mm],year[yy])
+                d2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],month[mm])
+                t2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],month[mm])
                 # note that scale and offsets automatically applied when reading
                 # data in this way
                 ds_d2m = Dataset(d2m_file)
@@ -139,12 +140,12 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
     
     # Note that ERA Interim times are in gregorian calendar format, hours after
     # 1900-01-01 00:00
-    NetCDF_file = '%s/d2m_%02i%04i.nc' % (path2files,start_month,start_year)
+    NetCDF_file = '%s/d2m_%04i%02i.nc' % (path2files,start_year,start_month)
     dataset = Dataset(NetCDF_file)
     start_greg = int(dataset.variables['time'][0])
     start_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(start_greg,'h')).astype('datetime64[D]')
 
-    NetCDF_file = '%s/d2m_%02i%04i.nc' % (path2files,end_month,end_year)
+    NetCDF_file = '%s/d2m_%04i%02i.nc' % (path2files,end_year,end_month)
     dataset = Dataset(NetCDF_file)
     end_greg = int(dataset.variables['time'][-1])
     end_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(end_greg,'h')).astype('datetime64[D]')
@@ -159,8 +160,8 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
     for yy in range(0,year.size):
         for mm in range(0,12):
             if tt < date.size:
-                d2m_file = '%s/d2m_%02i%04i.nc' % (path2files,month[mm],year[yy])
-                t2m_file = '%s/d2m_%02i%04i.nc' % (path2files,month[mm],year[yy])
+                d2m_file = '%s/d2m_%04i%03i.nc' % (path2files,year[yy],month[mm])
+                t2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],month[mm])
                 # note that scale and offsets automatically applied when reading
                 # data in this way
                 ds_d2m = Dataset(d2m_file)
