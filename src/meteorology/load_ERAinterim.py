@@ -29,19 +29,20 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
     # Note that ERA Interim times are in gregorian calendar format, hours after
     # 1900-01-01 00:00
     NetCDF_file = '%s/%s_%04i%02i.nc' % (path2files, variable,start_year,start_month)
-    print NetCDF_file
     dataset = Dataset(NetCDF_file)
     start_greg = int(dataset.variables['time'][0])
     start_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(start_greg,'h')).astype('datetime64[D]')
+    print NetCDF_file, start_date
 
     NetCDF_file = '%s/%s_%04i%02i.nc' % (path2files, variable,end_year,end_month)
     dataset = Dataset(NetCDF_file)
     end_greg = int(dataset.variables['time'][-1])
     end_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(end_greg,'h')).astype('datetime64[D]')
-    
+    print NetCDF_file, end_date
+
     # create date list
     year = np.arange(start_year,end_year+1)
-    date = np.arange(start_date,end_date)
+    date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
     metvar = np.zeros(date.size)*np.nan
 
@@ -106,7 +107,7 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
     
     # create date list
     year = np.arange(start_year,end_year+1)
-    date = np.arange(start_date,end_date)
+    date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
     rh_daily = np.zeros(date.size)*np.nan
 
@@ -152,7 +153,7 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
     
     # create date list
     year = np.arange(start_year,end_year+1)
-    date = np.arange(start_date,end_date)
+    date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
     vpd_daily = np.zeros(date.size)*np.nan
 
@@ -200,7 +201,7 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
     
     # create date list
     year = np.arange(start_year,end_year+1)
-    date = np.arange(start_date,end_date)
+    date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
     w_daily = np.zeros(date.size)*np.nan
 
