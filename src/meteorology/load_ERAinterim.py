@@ -49,7 +49,7 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
     for yy in range(0,year.size):
         for mm in range(0,12):
             if tt < date.size:
-                NetCDF_file = '%s/%s_%04i%02i.nc' % (path2files, variable,year[yy],month[mm])
+                NetCDF_file = '%s/%s_%04i%02i.nc' % (path2files, variable,year[yy],mm+1)
                 print NetCDF_file
 
                 # note that scale and offsets automatically applied when reading in
@@ -114,8 +114,8 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
     for yy in range(0,year.size):
         for mm in range(0,12):
             if tt < date.size:
-                d2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],month[mm])
-                t2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],month[mm])
+                d2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],mm+1)
+                t2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],mm+1)
                 # note that scale and offsets automatically applied when reading
                 # data in this way
                 ds_d2m = Dataset(d2m_file)
@@ -160,8 +160,8 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
     for yy in range(0,year.size):
         for mm in range(0,12):
             if tt < date.size:
-                d2m_file = '%s/d2m_%04i%03i.nc' % (path2files,year[yy],month[mm])
-                t2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],month[mm])
+                d2m_file = '%s/d2m_%04i%03i.nc' % (path2files,year[yy],mm+1)
+                t2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],mm+1)
                 # note that scale and offsets automatically applied when reading
                 # data in this way
                 ds_d2m = Dataset(d2m_file)
@@ -208,8 +208,8 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
     for yy in range(0,year.size):
         for mm in range(0,12):
             if tt < date.size:
-                u_file = '%s/u10w_%04i%02i.nc' % (path2files,year[yy],month[mm])
-                v_file = '%s/v10w_%04i%02i.nc' % (path2files,year[yy],month[mm])
+                u_file = '%s/u10w_%04i%02i.nc' % (path2files,year[yy],mm+1)
+                v_file = '%s/v10w_%04i%02i.nc' % (path2files,year[yy],mm+1)
                 # note that scale and offsets automatically applied when reading
                 # data in this way
                 ds_u = Dataset(u_file)
