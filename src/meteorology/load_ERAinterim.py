@@ -22,6 +22,7 @@ from netCDF4 import Dataset
 # - d2m
 # - psurf
 # - ssrd
+# - prcp
 def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,end_year):
 
     # first of all find the first and last tile, and obtain the start and end
@@ -79,7 +80,7 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
                     if variable in ['t2m','d2m','psurf']:
                         metvar[tt,:,:] = np.mean(eravar[ii*4:(ii+1)*4,:,:],axis=0)
                     # - ssrd - only two timesteps per day, which need to be summed
-                    if variable == 'ssrd':
+                    if variable in ['prcp','ssrd']:
                         metvar[tt,:,:] = np.sum(eravar[ii*2:(ii+1)*2,:,:],axis=0)
                     # - wind speeds - only two timesteps per day, average
                     if variable in ['u10w','v10w']:
