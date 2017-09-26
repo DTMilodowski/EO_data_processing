@@ -41,8 +41,11 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
     # create date list
     year = np.arange(start_year,end_year+1)
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
+
     # create host array for met data    
-    metvar = np.zeros(date.size)*np.nan
+    lat = dataset.variables['latitude']
+    lon = dataset.variables['longitude']    
+    metvar = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
     for yy in range(0,year.size):
@@ -67,20 +70,20 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
                     # - minimum and maximum temperatures - two per day, take
                     #   minimum and maximum respectively
                     if variable == 'mn2t':
-                        metvar[tt] = np.min(eravar[ii*2:(ii+1)*2])
+                        metvar[tt,:,:] = np.min(eravar[ii*2:(ii+1)*2,:,:],axis=0)
                     if variable == 'mx2t':
-                        metvar[tt] = np.max(eravar[ii*2:(ii+1)*2])
+                        metvar[tt,:,:] = np.max(eravar[ii*2:(ii+1)*2,:,:],axis=0)
                     # - instantaneous temperatures and dewpoint temperatures,
                     #   surface pressure;
                     #   four per day, take average
                     if variable in ['t2m','d2m','psurf']:
-                        metvar[tt] = np.mean(eravar[ii*4:(ii+1)*4])
+                        metvar[tt,:,:] = np.mean(eravar[ii*4:(ii+1)*4,:,:],axis=0)
                     # - ssrd - only two timesteps per day, which need to be summed
                     if variable == 'ssrd':
-                        metvar[tt] = np.sum(eravar[ii*2:(ii+1)*2])
+                        metvar[tt,:,:] = np.sum(eravar[ii*2:(ii+1)*2,:,:],axis=0)
                     # - wind speeds - only two timesteps per day, average
                     if variable in ['u10w','v10w']:
-                        metvar[tt] = np.mean(eravar[ii*2:(ii+1)*2])
+                        metvar[tt,:,:] = np.mean(eravar[ii*2:(ii+1)*2,:,:],axis=0)
 
                     # iterate timestep
                     tt+=1
@@ -107,7 +110,7 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
     year = np.arange(start_year,end_year+1)
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
-    rh_daily = np.zeros(date.size)*np.nan
+    rh_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
     for yy in range(0,year.size):
@@ -128,7 +131,7 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
                 es_Td = 610.94*np.exp((17.625*d2m)/(243.04+d2m))
                 rh = 100.*(es_Td/es_T)
                 for ii in range(0,N):          
-                    rh_daily = np.mean(rh[ii*4:(ii+1)*4])
+                    rh_daily[tt,:,:] = np.mean(rh[ii*4:(ii+1)*4,:,:],axis=0)
                     tt+=1
 
     return date, rh_daily
@@ -153,7 +156,7 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
     year = np.arange(start_year,end_year+1)
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
-    vpd_daily = np.zeros(date.size)*np.nan
+    vpd_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
     for yy in range(0,year.size):
@@ -177,7 +180,7 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
                 ea = (rh[i]*es_T)/100.
                 vpd = es-ea
                 for ii in range(0,N):          
-                    vpd_daily = np.mean(vpd[ii*4:(ii+1)*4])
+                    vpd_daily[tt,:,:] = np.mean(vpd[ii*4:(ii+1)*4,:,:],axis=0)
                     tt+=1
 
     return date, vpd_daily
@@ -201,7 +204,7 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
     year = np.arange(start_year,end_year+1)
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
-    w_daily = np.zeros(date.size)*np.nan
+    w_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
     for yy in range(0,year.size):
@@ -221,7 +224,7 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
 
                 w = np.sqrt(u*u + v*v)
                 for ii in range(0,N):          
-                    w_daily = np.mean(w[ii*4:(ii+1)*4])
+                    w_daily[tt,:,:] = np.mean(w[ii*4:(ii+1)*4,:,:],axis=0)
                     tt+=1
 
     return date, w_daily
