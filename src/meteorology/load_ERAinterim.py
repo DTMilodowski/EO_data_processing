@@ -91,7 +91,7 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
     
     if variable in ['t2m','d2m','mn2t','mx2t']:
         metvar -= 273.15 # convert from K to oC
-    return date,metvar
+    return date,lat,lon,metvar
 
 
 # Calculate rh based on t2m and d2m
@@ -113,6 +113,8 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
     year = np.arange(start_year,end_year+1)
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
+    lat = dataset.variables['latitude']
+    lon = dataset.variables['longitude']    
     rh_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
@@ -137,7 +139,7 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
                     rh_daily[tt,:,:] = np.mean(rh[ii*4:(ii+1)*4,:,:],axis=0)
                     tt+=1
 
-    return date, rh_daily
+    return date,lat,lon, rh_daily
 
 
 # Calculate vpd based on t2m and d2m
@@ -159,6 +161,8 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
     year = np.arange(start_year,end_year+1)
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
+    lat = dataset.variables['latitude']
+    lon = dataset.variables['longitude']    
     vpd_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
@@ -186,7 +190,7 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
                     vpd_daily[tt,:,:] = np.mean(vpd[ii*4:(ii+1)*4,:,:],axis=0)
                     tt+=1
 
-    return date, vpd_daily
+    return date,lat,lon, vpd_daily
 
 # Calculate vpd based on t2m and d2m
 def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_year):
@@ -207,6 +211,8 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
     year = np.arange(start_year,end_year+1)
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
+    lat = dataset.variables['latitude']
+    lon = dataset.variables['longitude']    
     w_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
@@ -230,4 +236,4 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
                     w_daily[tt,:,:] = np.mean(w[ii*4:(ii+1)*4,:,:],axis=0)
                     tt+=1
 
-    return date, w_daily
+    return date,lat,lon, w_daily
