@@ -126,7 +126,7 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
         for mm in range(0,12):
             if tt < date.size:
                 d2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],mm+1)
-                t2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],mm+1)
+                t2m_file = '%s/t2m_%04i%02i.nc' % (path2files,year[yy],mm+1)
                 # note that scale and offsets automatically applied when reading
                 # data in this way
                 ds_d2m = Dataset(d2m_file)
@@ -176,7 +176,7 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
         for mm in range(0,12):
             if tt < date.size:
                 d2m_file = '%s/d2m_%04i%03i.nc' % (path2files,year[yy],mm+1)
-                t2m_file = '%s/d2m_%04i%02i.nc' % (path2files,year[yy],mm+1)
+                t2m_file = '%s/t2m_%04i%02i.nc' % (path2files,year[yy],mm+1)
                 # note that scale and offsets automatically applied when reading
                 # data in this way
                 ds_d2m = Dataset(d2m_file)
