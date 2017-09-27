@@ -236,8 +236,8 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
 
                 N = ds_u.variables['time'][:].size/4
 
-                u = ds_u.variables['u10w'][:]
-                v = ds_v.variables['v10w'][:]
+                u = ds_u.variables['u10'][:]
+                v = ds_v.variables['v10'][:]
 
                 w = np.sqrt(u*u + v*v)
                 for ii in range(0,N):          
