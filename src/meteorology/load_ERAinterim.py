@@ -44,8 +44,8 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
 
     # create host array for met data    
-    lat = dataset.variables['latitude']
-    lon = dataset.variables['longitude']    
+    lat = np.asarray(dataset.variables['latitude'])
+    lon = np.asarray(dataset.variables['longitude'])    
     metvar = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
@@ -113,8 +113,8 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
     year = np.arange(start_year,end_year+1)
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
-    lat = dataset.variables['latitude']
-    lon = dataset.variables['longitude']    
+    lat = np.asarray(dataset.variables['latitude'])
+    lon = np.asarray(dataset.variables['longitude'])
     rh_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
@@ -161,8 +161,8 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
     year = np.arange(start_year,end_year+1)
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
-    lat = dataset.variables['latitude']
-    lon = dataset.variables['longitude']    
+    lat = np.asarray(dataset.variables['latitude'])
+    lon = np.asarray(dataset.variables['longitude'])    
     vpd_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
@@ -211,8 +211,8 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
     year = np.arange(start_year,end_year+1)
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
-    lat = dataset.variables['latitude']
-    lon = dataset.variables['longitude']    
+    lat = np.asarray(dataset.variables['latitude'])
+    lon = np.asarray(dataset.variables['longitude'] )   
     w_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
