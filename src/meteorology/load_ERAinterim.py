@@ -134,8 +134,8 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
 
                 N = dataset.variables['time'][:].size/4
 
-                d2m = ds_d2m.variables[variable][:] - 273.15 # convert from K to oC
-                t2m = ds_t2m.variables[variable][:] - 273.15 # convert from K to oC
+                d2m = ds_d2m.variables['d2m'][:] - 273.15 # convert from K to oC
+                t2m = ds_t2m.variables['t2m'][:] - 273.15 # convert from K to oC
                 es_T = 610.94*np.exp((17.625*t2m)/(243.04+t2m))
                 es_Td = 610.94*np.exp((17.625*d2m)/(243.04+d2m))
                 rh = 100.*(es_Td/es_T)
@@ -184,8 +184,8 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
 
                 N = dataset.variables['time'][:].size/4
 
-                d2m = ds_d2m.variables[variable][:] - 273.15 # convert from K to oC
-                t2m = ds_t2m.variables[variable][:] - 273.15 # convert from K to oC
+                d2m = ds_d2m.variables['d2m'][:] - 273.15 # convert from K to oC
+                t2m = ds_t2m.variables['t2m'][:] - 273.15 # convert from K to oC
 
                 es_T = 610.94*np.exp((17.625*t2m)/(243.04+t2m))
                 es_Td = 610.94*np.exp((17.625*d2m)/(243.04+d2m))
@@ -236,8 +236,8 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
 
                 N = dataset.variables['time'][:].size/4
 
-                u = ds_u.variables[variable][:]
-                v = ds_v.variables[variable][:]
+                u = ds_u.variables['u10w'][:]
+                v = ds_v.variables['v10w'][:]
 
                 w = np.sqrt(u*u + v*v)
                 for ii in range(0,N):          
