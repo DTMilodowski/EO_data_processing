@@ -45,7 +45,9 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
 
     # create host array for met data    
     lat = np.asarray(dataset.variables['latitude'])
-    lon = np.asarray(dataset.variables['longitude'])    
+    lon = np.asarray(dataset.variables['longitude'])
+    lon[lon>180]-=360
+    
     metvar = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
@@ -115,6 +117,8 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
     # create host array for met data    
     lat = np.asarray(dataset.variables['latitude'])
     lon = np.asarray(dataset.variables['longitude'])
+    lon[lon>180]-=360
+
     rh_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
@@ -163,6 +167,8 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
     # create host array for met data    
     lat = np.asarray(dataset.variables['latitude'])
     lon = np.asarray(dataset.variables['longitude'])    
+    lon[lon>180]-=360
+
     vpd_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
@@ -212,7 +218,9 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
     # create host array for met data    
     lat = np.asarray(dataset.variables['latitude'])
-    lon = np.asarray(dataset.variables['longitude'] )   
+    lon = np.asarray(dataset.variables['longitude'])
+    lon[lon>180]-=360
+  
     w_daily = np.zeros((date.size,lat.size,lon.size))*np.nan
 
     tt = 0
