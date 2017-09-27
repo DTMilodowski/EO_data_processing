@@ -132,7 +132,7 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
                 ds_d2m = Dataset(d2m_file)
                 ds_t2m = Dataset(t2m_file)
 
-                N = dataset.variables['time'][:].size/4
+                N = ds_d2m.variables['time'][:].size/4
 
                 d2m = ds_d2m.variables['d2m'][:] - 273.15 # convert from K to oC
                 t2m = ds_t2m.variables['t2m'][:] - 273.15 # convert from K to oC
@@ -182,7 +182,7 @@ def calculate_vpd_daily(path2files,start_month,start_year,end_month,end_year):
                 ds_d2m = Dataset(d2m_file)
                 ds_t2m = Dataset(t2m_file)
 
-                N = dataset.variables['time'][:].size/4
+                N = ds_d2m.variables['time'][:].size/4
 
                 d2m = ds_d2m.variables['d2m'][:] - 273.15 # convert from K to oC
                 t2m = ds_t2m.variables['t2m'][:] - 273.15 # convert from K to oC
@@ -234,7 +234,7 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
                 ds_u = Dataset(u_file)
                 ds_w = Dataset(v_file)
 
-                N = dataset.variables['time'][:].size/4
+                N = ds_u.variables['time'][:].size/4
 
                 u = ds_u.variables['u10w'][:]
                 v = ds_v.variables['v10w'][:]
