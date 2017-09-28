@@ -39,6 +39,13 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
     end_greg = int(dataset.variables['time'][-1])
     end_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(end_greg,'h')).astype('datetime64[D]')
 
+    # Make exceptions for prcp, ssrd and windspd since these variables are 
+    # cumulative or average 12 hr values based on previous 12 hours. This means
+    # that final timestep is 00:00 which gives an end date a day later than
+    # required
+    if variable in ['prcp','u10w','v10w','ssrd']:
+        end_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(end_greg-12,'h')).astype('datetime64[D]')
+
     # create date list
     year = np.arange(start_year,end_year+1)
     date = np.arange(start_date,end_date+np.timedelta64(1,'D'))
