@@ -221,7 +221,7 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
     NetCDF_file = '%s/u10w_%04i%02i.nc' % (path2files,end_year,end_month)
     dataset = Dataset(NetCDF_file)
     end_greg = int(dataset.variables['time'][-1])
-    end_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(end_greg,'h')).astype('datetime64[D]')
+    end_date = (np.datetime64('1900-01-01 00:00') + np.timedelta64(end_greg-12,'h')).astype('datetime64[D]')
     
     # create date list
     year = np.arange(start_year,end_year+1)
