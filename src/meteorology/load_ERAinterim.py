@@ -66,10 +66,10 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
                 else:
                     N = dataset.variables['time'][:].size/4
 
-                varkey = variable
+                varcode = variable
                 if variable == 'prcp':
-                    varkey = 'tp'
-                eravar = dataset.variables[varkey]
+                    varcode = 'tp'
+                eravar = dataset.variables[varcode]
                     
                 for ii in range(0,N):
                     # now need to use variable specific processing chain
