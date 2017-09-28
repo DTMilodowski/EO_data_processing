@@ -232,7 +232,7 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
                 # note that scale and offsets automatically applied when reading
                 # data in this way
                 ds_u = Dataset(u_file)
-                ds_w = Dataset(v_file)
+                ds_v = Dataset(v_file)
 
                 N = ds_u.variables['time'][:].size/4
 
