@@ -68,7 +68,7 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
                 # data in this way
                 dataset = Dataset(NetCDF_file)
                 
-                if variable in ['ssrd','u10w','v10w','mn2t','mx2t']:
+                if variable in ['ssrd','u10w','v10w','mn2t','mx2t','prcp']:
                     N = dataset.variables['time'][:].size/2
                 else:
                     N = dataset.variables['time'][:].size/4
@@ -76,6 +76,10 @@ def load_ERAinterim_daily(path2files,variable,start_month,start_year,end_month,e
                 varcode = variable
                 if variable == 'prcp':
                     varcode = 'tp'
+                elif variable == 'u10w':
+                    varcode = 'u10'
+                elif variable == 'v10w':
+                    varcode = 'v10'
                 eravar = dataset.variables[varcode]
                     
                 for ii in range(0,N):
@@ -153,6 +157,7 @@ def calculate_rh_daily(path2files,start_month,start_year,end_month,end_year):
                     rh_daily[tt,:,:] = np.mean(rh[ii*4:(ii+1)*4,:,:],axis=0)
                     tt+=1
 
+    rh_daily[rh_daily>100]=100.
     return date,lat,lon, rh_daily
 
 
@@ -244,14 +249,14 @@ def calculate_wind_speed_daily(path2files,start_month,start_year,end_month,end_y
                 ds_u = Dataset(u_file)
                 ds_v = Dataset(v_file)
 
-                N = ds_u.variables['time'][:].size/4
+                N = ds_u.variables['time'][:].size/2
 
                 u = ds_u.variables['u10'][:]
                 v = ds_v.variables['v10'][:]
 
                 w = np.sqrt(u*u + v*v)
                 for ii in range(0,N):          
-                    w_daily[tt,:,:] = np.mean(w[ii*4:(ii+1)*4,:,:],axis=0)
+                    w_daily[tt,:,:] = np.mean(w[ii*2:(ii+1)*2,:,:],axis=0)
                     tt+=1
 
     return date,lat,lon, w_daily
