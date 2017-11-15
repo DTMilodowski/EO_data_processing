@@ -23,9 +23,53 @@ from netCDF4 import Dataset
 # - burned area expressed as fraction of a pixel: BurnedFraction
 # - burned area expressed as the area in square metres: BurnedArea
 # Files collate annual data, with timestep indicated by the day of the year.
-def load_GFED4_monthly(path2files,variable,start_month,start_year,end_month,end_year):
+# Need to specify time period of interest and the N,S,E,W extents for the area
+# of interest.
+def load_GFED4_monthly(path2files,variable,start_month,start_year,end_month,end_year,N,S,E,W):
 
     # first of all obtain the start and end date of the time series
     start_date = np.datetime64('%04i-%02i' % (start_year,start_month))
     end_date = (np.datetime64('%04i-%02i' % (end_year,end_month))+np.timedelta64(1,'M'))
+    dates = np.arange(start_date,end_date)
+    n_dates = dates.size
 
+    # Load one tile to dimensions of clipped array, and the array mask
+    NetCDF_file = '%s/GFED4_%s_%04i.nc' % (path2files,start_year)
+    ds = Dataset(NetCDF_file)
+    lat = ds.variables['latitude']
+    lon = ds.variables['longitude']
+    
+    lat_mask = np.all((lat<=N,lat>=S),axis=0)
+    lon_mask = np.all((lon<=E,lon>=W),axis=0)
+    n_lat = lat_mask.sum()
+    n_lon = lon_mask.sum()
+    ds=None
+    
+    # Loop through the netcdf files, retrieving the data and putting into time series.
+    year = np.arange(start_year,end_year + 1)
+    month = np.arange(12)+1
+    n_years = year.size
+    i_mm = 0
+    GFED_sample = np.zeros((n_dates,n_lat,n_lon))
+    for yy in range(0,n_years):
+        
+        # get the number of months needed for this year
+        n_months = 12
+        if yy == 0:
+            n_months = 12 - start_month + 1
+            start_mm = start_month
+        if year[yy] == end_year:
+            n_months = n_months - (12-end_month)
+            end_mm = end_month
+        
+        NetCDF_file = '%s/GFED4_%s_%04i.nc' % (path2files,year[yy])
+        print NetCDF_file
+
+        # get area of interest
+        month_mask = np.all((month>=start_mm,month<=end_mm),axis=0)
+        array_mask = np.ix_(month_mask,lat_mask,lon_mask)
+
+        GFED_sample[i_mm:i_mm+n_months] = ds.variables[variable][array_mask]
+        i_mm += n_months
+
+    return dates, GFED_sample
