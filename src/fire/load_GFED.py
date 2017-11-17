@@ -34,10 +34,10 @@ def load_GFED4_monthly(path2files,variable,start_month,start_year,end_month,end_
     n_dates = dates.size
 
     # Load one tile to dimensions of clipped array, and the array mask
-    NetCDF_file = '%s/GFED4_%s_%04i.nc' % (path2files,start_year)
+    NetCDF_file = '%s/GFED4_%04i.nc' % (path2files,start_year)
     ds = Dataset(NetCDF_file)
-    lat = ds.variables['latitude']
-    lon = ds.variables['longitude']
+    lat = np.asarray(ds.variables['latitude'])
+    lon = np.asarray(ds.variables['longitude'])
     
     lat_mask = np.all((lat<=N,lat>=S),axis=0)
     lon_mask = np.all((lon<=E,lon>=W),axis=0)
@@ -55,6 +55,8 @@ def load_GFED4_monthly(path2files,variable,start_month,start_year,end_month,end_
         
         # get the number of months needed for this year
         n_months = 12
+        start_mm = 1
+        end_mm = 12
         if yy == 0:
             n_months = 12 - start_month + 1
             start_mm = start_month
@@ -62,14 +64,16 @@ def load_GFED4_monthly(path2files,variable,start_month,start_year,end_month,end_
             n_months = n_months - (12-end_month)
             end_mm = end_month
         
-        NetCDF_file = '%s/GFED4_%s_%04i.nc' % (path2files,year[yy])
+        NetCDF_file = '%s/GFED4_%04i.nc' % (path2files,year[yy])
         print NetCDF_file
 
+        ds = Dataset(NetCDF_file)
         # get area of interest
         month_mask = np.all((month>=start_mm,month<=end_mm),axis=0)
+        print month_mask.shape, lat_mask.shape, lon_mask.shape
         array_mask = np.ix_(month_mask,lat_mask,lon_mask)
 
-        GFED_sample[i_mm:i_mm+n_months] = ds.variables[variable][array_mask]
+        GFED_sample[i_mm:i_mm+n_months] = np.asarray(ds.variables[variable])[array_mask]
         i_mm += n_months
 
     return dates, GFED_sample
