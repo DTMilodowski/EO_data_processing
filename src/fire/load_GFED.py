@@ -70,10 +70,9 @@ def load_GFED4_monthly(path2files,variable,start_month,start_year,end_month,end_
         ds = Dataset(NetCDF_file)
         # get area of interest
         month_mask = np.all((month>=start_mm,month<=end_mm),axis=0)
-        print month_mask.shape, lat_mask.shape, lon_mask.shape
         array_mask = np.ix_(month_mask,lat_mask,lon_mask)
 
         GFED_sample[i_mm:i_mm+n_months] = np.asarray(ds.variables[variable])[array_mask]
         i_mm += n_months
 
-    return dates, GFED_sample
+    return dates, lat[lat_mask], lon[lon_mask], GFED_sample
