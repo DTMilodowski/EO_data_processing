@@ -25,9 +25,9 @@ def is_GeoTIFF_within_bbox(File,T,B,L,R):
     driver.Register()
     try:
         ds = gdal.Open(File)
-    except RuntimeError, e:
-        print 'unable to open ' + File
-        print e
+    except(RuntimeError, e):
+        print('unable to open ' + File)
+        print(e)
         sys.exit(1)
     geoTrans = ds.GetGeoTransform()
 
@@ -53,30 +53,71 @@ def is_GeoTIFF_within_bbox(File,T,B,L,R):
     return test
 
 #------------------------------------------------------------------------------
-# Function to load a GeoTIFF band plus georeferencing information.  
+# Function to load a GeoTIFF band plus georeferencing information.
 # Only loads one band, which is band 1 by default
 def load_GeoTIFF_band_and_georeferencing(File,band_number=1):
-    
+
     driver = gdal.GetDriverByName('GTiff')
     driver.Register()
 
     try:
         ds = gdal.Open(File)
-    except RuntimeError, e:
-        print 'unable to open ' + File
-        print e
+    except( RuntimeError, e):
+        print('unable to open ' + File)
+        print(e)
         sys.exit(1)
-        
+
     source_band = ds.GetRasterBand(band_number)
     if source_band is None:
-        print "BAND MISSING"
-        sys.exit(1)  
+        print("BAND MISSING")
+        sys.exit(1)
 
     array = np.array(ds.GetRasterBand(band_number).ReadAsArray(),dtype=np.float64)
     geoTrans = ds.GetGeoTransform()
     coord_sys = ds.GetProjectionRef()
 
     return array, geoTrans, coord_sys
+
+#------------------------------------------------------------------------------
+# Function to load a generic raster dataset georeferencing information.
+def load_raster_and_georeferencing(File,driver = 'GTiff'):
+
+    driver = gdal.GetDriverByName(driver)
+    driver.Register()
+
+    try:
+        ds = gdal.Open(File)
+    except (RuntimeError, e):
+        print('unable to open ' + File)
+        print (e)
+        sys.exit(1)
+
+    print("[ RASTER BAND COUNT ]: ", ds.RasterCount)
+    NRows = ds.RasterYSize
+    NCols = ds.RasterXSize
+    NBands = ds.RasterCount
+    array = np.zeros((NRows,NCols,NBands))
+
+    for bb in range( NBands ):
+        band = bb+1
+        print("[ GETTING BAND %i]: " % band)
+        source_band = ds.GetRasterBand(band)
+        if source_band is None:
+            continue
+
+        stats = source_band.GetStatistics( True, True )
+        if stats is None:
+            continue
+
+        print("[ STATS ] =  Minimum=%.3f, Maximum=%.3f, Mean=%.3f, StdDev=%.3f" % ( stats[0], stats[1], stats[2], stats[3] ))
+        array[:,:,bb] = np.array(ds.GetRasterBand(band).ReadAsArray(),dtype=np.float64)
+
+    geoTrans = ds.GetGeoTransform()
+    coord_sys = ds.GetProjectionRef()
+
+    return array, geoTrans, coord_sys
+
+
 
 #------------------------------------------------------------------------------
 # Function to write an array to a geoTIFF
@@ -91,9 +132,9 @@ def write_array_to_GeoTiff(array,geoTrans,OUTFILE_prefix,EPSG_CODE='4326',north_
             geoTrans[5]*=-1
             geoTrans[3] = geoTrans[3]-(array.shape[0]+1.)*geoTrans[5]
         # Get array dimensions and flip so that it plots in the correct orientation on GIS platforms
-        if len(array.shape) < 2: 
-            print 'array has less than two dimensions! Unable to write to raster'
-            sys.exit(1)  
+        if len(array.shape) < 2:
+            print('array has less than two dimensions! Unable to write to raster')
+            sys.exit(1)
         elif len(array.shape) == 2:
             (NRows,NCols) = array.shape
             array = np.flipud(array)
@@ -102,8 +143,8 @@ def write_array_to_GeoTiff(array,geoTrans,OUTFILE_prefix,EPSG_CODE='4326',north_
             for i in range(0,NBands):
                 array[:,:,i] = np.flipud(array[:,:,i])
         else:
-            print 'array has too many dimensions! Unable to write to raster'
-            sys.exit(1)  
+            print('array has too many dimensions! Unable to write to raster')
+            sys.exit(1)
 
     else:
         # for north_up array, need the n-s resolution (element 5) to be positive
@@ -111,9 +152,9 @@ def write_array_to_GeoTiff(array,geoTrans,OUTFILE_prefix,EPSG_CODE='4326',north_
             geoTrans[5]*=-1
             geoTrans[3] = geoTrans[3]-(array.shape[0]+1.)*geoTrans[5]
         # Get array dimensions and flip so that it plots in the correct orientation on GIS platforms
-        if len(array.shape) < 2: 
-            print 'array has less than two dimensions! Unable to write to raster'
-            sys.exit(1)  
+        if len(array.shape) < 2:
+            print('array has less than two dimensions! Unable to write to raster')
+            sys.exit(1)
         elif len(array.shape) == 2:
             (NRows,NCols) = array.shape
             array = np.flipud(array)
@@ -122,13 +163,13 @@ def write_array_to_GeoTiff(array,geoTrans,OUTFILE_prefix,EPSG_CODE='4326',north_
             for i in range(0,NBands):
                 array[:,:,i] = np.flipud(array[:,:,i])
         else:
-            print 'array has too many dimensions! Unable to write to raster'
-            sys.exit(1)  
-    
+            print('array has too many dimensions! Unable to write to raster')
+            sys.exit(1)
+
     # Get array dimensions and flip so that it plots in the correct orientation on GIS platforms
-    if len(array.shape) < 2: 
-        print 'array has less than two dimensions! Unable to write to raster'
-        sys.exit(1)  
+    if len(array.shape) < 2:
+        print('array has less than two dimensions! Unable to write to raster')
+        sys.exit(1)
     elif len(array.shape) == 2:
         (NRows,NCols) = array.shape
         array = np.flipud(array)
@@ -137,24 +178,113 @@ def write_array_to_GeoTiff(array,geoTrans,OUTFILE_prefix,EPSG_CODE='4326',north_
         for i in range(0,NBands):
             array[:,:,i] = np.flipud(array[:,:,i])
     else:
-        print 'array has too many dimensions! Unable to write to raster'
-        sys.exit(1)  
-    
+        print('array has too many dimensions! Unable to write to raster')
+        sys.exit(1)
+
     # Write GeoTiff
     driver = gdal.GetDriverByName('GTiff')
     driver.Register()
 
     # set all the relevant geospatial information
     dataset = driver.Create( OUTFILE_prefix+'.tif', NCols, NRows, NBands, gdal.GDT_Float32 )
+    print("Generating raster %s with %i bands" % ((OUTFILE_prefix+'.tif'),NBands))
     dataset.SetGeoTransform( geoTrans )
     srs = osr.SpatialReference()
     srs.SetWellKnownGeogCS( 'EPSG:'+EPSG_CODE )
     dataset.SetProjection( srs.ExportToWkt() )
     # write array
-    dataset.GetRasterBand(1).SetNoDataValue( -9999 )
-    dataset.GetRasterBand(1).WriteArray( array )
+    if len(array.shape) == 2:
+        dataset.GetRasterBand(1).SetNoDataValue( -9999 )
+        dataset.GetRasterBand(1).WriteArray( array )
+    elif len(array.shape) == 3:
+        for bb in range(0,NBands):
+            dataset.GetRasterBand(bb+1).SetNoDataValue( -9999 )
+            dataset.GetRasterBand(bb+1).WriteArray( array[:,:,i] )
     dataset = None
     return 0
+
+# Function to write an array to a geoTIFF
+def write_array_to_GeoTiff_with_coordinate_system(array,geoTrans,coord_sys,OUTFILE,north_up=True):
+    NBands = 1
+    NRows = 0
+    NCols = 0
+
+    if north_up:
+        # for north_up array, need the n-s resolution (element 5) to be negative
+        if geoTrans[5]>0:
+            geoTrans[5]*=-1
+            geoTrans[3] = geoTrans[3]-(array.shape[0]+1.)*geoTrans[5]
+        # Get array dimensions and flip so that it plots in the correct orientation on GIS platforms
+        if len(array.shape) < 2:
+            print('array has less than two dimensions! Unable to write to raster')
+            sys.exit(1)
+        elif len(array.shape) == 2:
+            (NRows,NCols) = array.shape
+            array = np.flipud(array)
+        elif len(array.shape) == 3:
+            (NRows,NCols,NBands) = array.shape
+            for i in range(0,NBands):
+                array[:,:,i] = np.flipud(array[:,:,i])
+        else:
+            print('array has too many dimensions! Unable to write to raster')
+            sys.exit(1)
+
+    else:
+        # for north_up array, need the n-s resolution (element 5) to be positive
+        if geoTrans[5]<0:
+            geoTrans[5]*=-1
+            geoTrans[3] = geoTrans[3]-(array.shape[0]+1.)*geoTrans[5]
+        # Get array dimensions and flip so that it plots in the correct orientation on GIS platforms
+        if len(array.shape) < 2:
+            print('array has less than two dimensions! Unable to write to raster')
+            sys.exit(1)
+        elif len(array.shape) == 2:
+            (NRows,NCols) = array.shape
+            array = np.flipud(array)
+        elif len(array.shape) == 3:
+            (NRows,NCols,NBands) = array.shape
+            for i in range(0,NBands):
+                array[:,:,i] = np.flipud(array[:,:,i])
+        else:
+            print('array has too many dimensions! Unable to write to raster')
+            sys.exit(1)
+
+    # Get array dimensions and flip so that it plots in the correct orientation on GIS platforms
+    if len(array.shape) < 2:
+        print ('array has less than two dimensions! Unable to write to raster')
+        sys.exit(1)
+    elif len(array.shape) == 2:
+        (NRows,NCols) = array.shape
+        array = np.flipud(array)
+    elif len(array.shape) == 3:
+        (NRows,NCols,NBands) = array.shape
+        for i in range(0,NBands):
+            array[:,:,i] = np.flipud(array[:,:,i])
+    else:
+        print('array has too many dimensions! Unable to write to raster')
+        sys.exit(1)
+
+    # Write GeoTiff
+    driver = gdal.GetDriverByName('GTiff')
+    driver.Register()
+
+    # set all the relevant geospatial information
+    dataset = driver.Create( OUTFILE, NCols, NRows, NBands, gdal.GDT_Float32 )
+    print("Generating raster %s with %i bands" % ((OUTFILE),NBands))
+    dataset.SetGeoTransform( geoTrans )
+    srs = osr.SpatialReference(wkt=coord_sys)
+    dataset.SetProjection( srs.ExportToWkt() )
+    # write array
+    if len(array.shape) == 2:
+        dataset.GetRasterBand(1).SetNoDataValue( -9999 )
+        dataset.GetRasterBand(1).WriteArray( array )
+    elif len(array.shape) == 3:
+        for bb in range(0,NBands):
+            dataset.GetRasterBand(bb+1).SetNoDataValue( -9999 )
+            dataset.GetRasterBand(bb+1).WriteArray( array[:,:,i] )
+    dataset = None
+    return 0
+
 
 
 ###############################################################################
@@ -227,14 +357,14 @@ def grid_FORMA(FORMAfile, target_resolution):
         ptlat=float(line[0]);ptlon=float(line[1])
         idlat=np.argsort(np.abs(ptlat-lat))[0]
         idlon=np.argsort(np.abs(ptlon-lon))[0]
-        
+
         #weight as function of cos for latitude
-        weight=np.cos(np.radians(ptlat))/np.cos(np.radians(lat[idlat]))      
+        weight=np.cos(np.radians(ptlat))/np.cos(np.radians(lat[idlat]))
         degradation[idstep,idlat,idlon]=degradation[idstep,idlat,idlon]+(original_resolution/target_resolution)*weight*(original_resolution/target_resolution)
-        
+
         line=forma_data.readline();counter+=1
         if counter % 100000 == 0:
-            print counter
+            print(counter)
 
     forma_data.close()
 
@@ -245,9 +375,9 @@ def grid_FORMA(FORMAfile, target_resolution):
 
         day=np.array(date.split('-'),dtype='i')
         day=dt.datetime(day[0],day[1],day[2])
- 
+
         if dd==0:
-            refday=day        
+            refday=day
 
         timesteps[dd]=(day-refday).days
 
@@ -255,17 +385,17 @@ def grid_FORMA(FORMAfile, target_resolution):
 
 
 def grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01-01', end_date='2015-01-01'):
-    
+
     timesteps, lat, lon, degrad_i = grid_FORMA(FORMAfile,target_resolution)
 
     lat_mask = np.all((lat<N,lat>=S),axis=0)
     lon_mask = np.all((lon<E,lon>=W),axis=0)
-    
+
     FORMAstart = np.datetime64('2005-12-19')
-    
+
     # create array of dates for original FORMA dataset
     dates = FORMAstart+timesteps.astype('timedelta64[D]')
-    
+
     # Clip the area to ROI
     degrad = np.zeros((dates.size,lat_mask.sum(),lon_mask.sum()))
     for dd in range(0,dates.size):
@@ -277,28 +407,28 @@ def grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01
 
 
     months = np.unique(dates.astype('datetime64[M]')[1:])# want to skip the first  of the layers as this is funky
-    N_months = months.size 
+    N_months = months.size
     monthly_degrad=np.zeros([N_months,degrad.shape[1],degrad.shape[2]])
 
     #start from degradation detected on or after 17/1/2006
     refmonth=dates[1].astype('datetime64[M]')-dates[1].astype('datetime64[Y]')
     monthid=0
     for dd,cday in enumerate(dates[1:]):
-        print cday, dd, dates.size, monthid, N_months
+        print(cday, dd, dates.size, monthid, N_months)
         #get month of current time step
         currentmonth=dates[dd+1].astype('datetime64[M]')-dates[dd+1].astype('datetime64[Y]')
-        # same month, just add data        
+        # same month, just add data
         if currentmonth == refmonth:
-            print "same month", cday
+            print("same month", cday)
             monthly_degrad[monthid] = monthly_degrad[monthid]+degrad[dd+1]
         #different month, distribute equally
         else:
             #find first day of month
             begin_month = cday.astype('datetime64[M]').astype('datetime64[D]')
-            ndays = (cday-dates[dd+1-1]).astype('int') # number of days 
+            ndays = (cday-dates[dd+1-1]).astype('int') # number of days
             nday_in_mth = (cday-begin_month).astype('int') #cday.day-1 #number of days in same month as date of record, this way we assume degradation did not occur on day of record
-            nday_prev_mth = ndays-nday_in_mth 
-            print "different month", cday, nday_in_mth, nday_prev_mth, ndays
+            nday_prev_mth = ndays-nday_in_mth
+            print("different month", cday, nday_in_mth, nday_prev_mth, ndays)
 
             #assign portion of degradation to previous month
             monthly_degrad[monthid] = monthly_degrad[monthid]+degrad[dd+1]*nday_prev_mth/float(ndays)
@@ -306,10 +436,8 @@ def grid_FORMA_monthly(FORMAfile,target_resolution,N,S,E,W,start_date = '2006-01
             #assign portion of degradation to currentmonth
             monthly_degrad[monthid] = monthly_degrad[monthid]+degrad[dd+1]*nday_in_mth/float(ndays)
             refmonth = currentmonth
-            
+
     mask = np.all((months>=np.datetime64(start_date),months<np.datetime64(end_date)),axis=0)
     months = months[mask]
     monthly_degrad = monthly_degrad[mask,:,:]
     return months, lat_mask, lon_mask, monthly_degrad
-
-    
