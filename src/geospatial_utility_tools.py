@@ -1,4 +1,4 @@
-# import required python libraries 
+# import required python libraries
 import numpy as np
 
 # a set of functions to calculate the area of a WGS84 pixel analytically
@@ -58,7 +58,7 @@ def calculate_cell_area(lat,long,area_scalar=1.,cell_centred=True):
             long2 = long1+dx
             cell_area[rr,cc] = calculate_WGS84_pixel_area(lat1,lat2,long1,long2)
 
-    # convert cell_area from sq. metres to desired units using scalar 
+    # convert cell_area from sq. metres to desired units using scalar
     cell_area*=area_scalar
     return cell_area
 
@@ -130,13 +130,13 @@ def clip_array_to_bbox(array,geoTrans,N,S,W,E):
     test = np.dot(lat_keep,long_keep).astype(bool)
 
     clip_array = array[test].reshape(lat_keep.sum(),long_keep.sum())
-    
+
     geoTrans_u = []
     if geoTrans[5] > 0: # +ve y resolution indicates that raster origin specified as lower left corner
         geoTrans_u = [np.min(longitude[long_keep[0,:].astype(bool)]), geoTrans[1], geoTrans[2], np.min(latitude[lat_keep[:,0].astype(bool)]), geoTrans[4], geoTrans[5]]
     else:              # -ve y resolution indicates that raster origin specified as upper left corner
         geoTrans_u = [np.min(longitude[long_keep[0,:].astype(bool)]),  geoTrans[1], geoTrans[2], np.max(latitude[lat_keep[:,0].astype(bool)]), geoTrans[4], geoTrans[5]]
-    
+
     return clip_array, geoTrans_u
 
 
@@ -155,10 +155,10 @@ def regrid_array_nearest(target_lat, target_long, geoTrans, array, regrid = np.a
 
     target_rows = target_lat.size
     target_cols = target_lon.size
-    
+
     if regrid.size == 0:
         regrid = np.zeros((target_rows,target_cols))*np.nan
-    
+
     init_rows,init_cols = array.shape
     closest_lat=np.zeros(init_rows).astype("int")
     closest_long=np.zeros(init_cols).astype("int")
@@ -169,7 +169,7 @@ def regrid_array_nearest(target_lat, target_long, geoTrans, array, regrid = np.a
         closest_lat[ii]=np.argsort(np.abs(val-target_lat))[0]
     for jj,val in enumerate(init_long):
         closest_long[jj]=np.argsort(np.abs(val-target_long))[0]
-    
+
     for ii in range(0,target_rows):
         lat_mask = closest_lat==ii
         if lat_mask.sum() > 0:
