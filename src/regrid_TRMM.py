@@ -1,6 +1,6 @@
 # This function regrids daily TRMM precipitation data to a specified spatial and temporal resolution
 
-# import required python libraries 
+# import required python libraries
 import numpy as np
 import sys
 import time
@@ -11,7 +11,7 @@ import auxilliary_functions as aux
 import geospatial_utility_tools as geo
 
 # Where is the data?
-datadir = '/disk/scratch/local.2/dmilodow/TRMM/source_files/'
+datadir = '/disk/scratch/local.2/TRMM/source_files/'
 
 # where will we store data?
 savedir = '/disk/scratch/local.2/dmilodow/TRMM/regridded/'
